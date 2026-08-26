@@ -259,6 +259,16 @@
   }
   .replay:hover{ opacity:1; color: var(--sage); }
 
+  .final-fade{
+    opacity:0;
+    transform: translateY(10px);
+    transition: opacity .9s ease, transform .9s ease;
+  }
+  .final-fade.in{
+    opacity:1;
+    transform: translateY(0);
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{ animation: none !important; transition: none !important; }
   }
@@ -278,7 +288,7 @@
    ============================================================ */
 
 const SEQUENCE = [
-  { type:'line', text:'Коллеги,', cta:'что дальше?' },
+  { type:'line', text:'"Коллеги,"', cta:'что дальше?' },
 
   { type:'phrasecloud' },
 
@@ -349,20 +359,13 @@ const CAPSULE_WORDS = [
   '...проявлять желание вникнуть в проблему и прийти на помощь',
   '...оставаться собой',
   '...поддерживать',
-  '...верить в команду',
-  '...танцевать :)',
-  '...объединять людей',
-  '...замечать то, что другие не замечают',
-  '...создавать вокруг себя пространство, в котором комфортно',
   '...искать решения',
   '...смеяться',
-  '...говорить «Как думаешь, когда сможешь сделать?» :))',
   '...видеть в людях хорошее',
   '...давать позитивную обратную связь',
   '...поддерживать тех, кто встречается на твоём пути',
   '...искать новые контакты',
   '...развиваться',
-  '...сохранять лёгкость и спокойствие',
   '...быть таким коммуникабельным, тактичным и неравнодушным'
 ];
 
@@ -562,17 +565,39 @@ function renderScene(i){
 
   if(item.type === 'final'){
     stage.classList.add('no-click');
-    scene.innerHTML = `
-      <div class="final-lines">
-        <div class="final-title">${FINAL.title}</div>
-        <div class="final-sub">${FINAL.sub}</div>
-        <div class="final-sign">${FINAL.sign}</div>
-      </div>
-      <button class="replay">посмотреть ещё раз</button>
-    `;
-    scene.querySelector('.replay').addEventListener('click', (e)=>{
+
+    const wrap = document.createElement('div');
+    wrap.className = 'final-lines';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'final-title final-fade';
+    titleEl.textContent = FINAL.title;
+
+    const subEl = document.createElement('div');
+    subEl.className = 'final-sub final-fade';
+    subEl.textContent = FINAL.sub;
+
+    const signEl = document.createElement('div');
+    signEl.className = 'final-sign final-fade';
+    signEl.textContent = FINAL.sign;
+
+    wrap.appendChild(titleEl);
+    wrap.appendChild(subEl);
+    wrap.appendChild(signEl);
+
+    const replayBtn = document.createElement('button');
+    replayBtn.className = 'replay final-fade';
+    replayBtn.textContent = 'посмотреть ещё раз';
+    replayBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       restart();
+    });
+
+    scene.appendChild(wrap);
+    scene.appendChild(replayBtn);
+
+    [titleEl, subEl, signEl, replayBtn].forEach((el, i)=>{
+      setTimeout(()=> el.classList.add('in'), i * 2000);
     });
   }
 
