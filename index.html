@@ -141,6 +141,7 @@
   .cloud-word{
     font-family:'Manrope', sans-serif;
     font-weight:600;
+    font-size: clamp(1.15rem, 3vw, 1.55rem);
     cursor:pointer;
     padding: 0.35rem 0.9rem;
     border-radius: 999px;
@@ -158,13 +159,6 @@
     background: var(--sage-soft);
     text-decoration-style: solid;
   }
-  .cloud-word:nth-child(1){ font-size: clamp(1.05rem,2.9vw,1.5rem); }
-  .cloud-word:nth-child(2){ font-size: clamp(1.2rem,3.3vw,1.75rem); }
-  .cloud-word:nth-child(3){ font-size: clamp(0.95rem,2.5vw,1.25rem); }
-  .cloud-word:nth-child(4){ font-size: clamp(1.1rem,3vw,1.6rem); }
-  .cloud-word:nth-child(5){ font-size: clamp(1rem,2.7vw,1.35rem); }
-  .cloud-word:nth-child(6){ font-size: clamp(1rem,2.8vw,1.45rem); }
-  .cloud-word:nth-child(7){ font-size: clamp(1.15rem,3.1vw,1.65rem); }
 
   .cloud-quote{
     font-family:'Manrope', sans-serif;
@@ -172,6 +166,25 @@
     color: var(--muted);
     max-width: 34ch;
     min-height: 1.4em;
+  }
+
+  .cta-inline{
+    margin-top: 0.4rem;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size: 0.9rem;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.6rem 1.3rem;
+    cursor:pointer;
+    transition: color .25s ease, border-color .25s ease, background .25s ease;
+  }
+  .cta-inline:hover{
+    color: var(--sage);
+    border-color: var(--sage);
+    background: var(--sage-soft);
   }
 
   /* ---------- "клубок": короткие фразы и капсула — разбросаны по экрану,
@@ -208,15 +221,22 @@
   }
   .capsule-lead{
     position:absolute;
-    top: 7%;
+    top: 38%;
     left:50%;
     transform: translateX(-50%);
     width: 88%;
     font-family:'Manrope', sans-serif;
     font-weight:600;
-    font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+    font-size: clamp(1.7rem, 4.6vw, 2.6rem);
     color: var(--ink);
-    z-index:2;
+    z-index:3;
+    opacity:0;
+    transition: opacity 1s ease, top 1.15s cubic-bezier(.22,1,.36,1), font-size 1.15s cubic-bezier(.22,1,.36,1);
+  }
+  .capsule-lead.shown{ opacity:1; }
+  .capsule-lead.settled{
+    top: 7%;
+    font-size: clamp(1.2rem, 3.2vw, 1.8rem);
   }
   .capsule-zone{ top: 15%; z-index:2; }
 
@@ -403,7 +423,8 @@ function updateProgress(){
 
 function updateNavButtons(){
   backBtn.classList.toggle('hidden', index <= 0);
-  nextBtn.classList.toggle('hidden', SEQUENCE[index].type === 'final');
+  const type = SEQUENCE[index].type;
+  nextBtn.classList.toggle('hidden', type === 'final' || type === 'wordcloud');
 }
 
 // Раскладывает фразы вразброс по контейнеру: каждая фраза сначала измеряется,
@@ -416,7 +437,9 @@ function scatterInto(container, words, opts){
     staggerMs = 1000,
     fontClamp = 'clamp(1rem, 2.4vw, 1.45rem)',
     shuffle = true,
-    pad = 12
+    pad = 12,
+    trailing = [],   // фразы, которые всегда идут последними, каждая может иметь свой fontClamp
+    noRotate = false // если true — фразы располагаются строго горизонтально, без наклона
   } = opts || {};
 
   let list = words.slice();
@@ -426,6 +449,11 @@ function scatterInto(container, words, opts){
       [list[i],list[j]] = [list[j],list[i]];
     }
   }
+
+  // объединяем обычные фразы (со стандартным размером шрифта) и "хвостовые"
+  // фразы (со своим, обычно увеличенным, размером шрифта)
+  const combined = list.map(w => ({ text:w, fontClamp }))
+    .concat(trailing.map(t => ({ text:t.text, fontClamp: t.fontClamp || fontClamp })));
 
   const rect = container.getBoundingClientRect();
   const W = Math.max(rect.width, 60);
@@ -439,13 +467,13 @@ function scatterInto(container, words, opts){
     return ox*oy;
   }
 
-  list.forEach((w,i)=>{
+  combined.forEach((item,i)=>{
     setTimeout(()=>{
       const span = document.createElement('span');
       span.className = 'scatter-word';
-      span.textContent = w;
+      span.textContent = item.text;
       span.style.color = colorVar;
-      span.style.fontSize = fontClamp;
+      span.style.fontSize = item.fontClamp;
       span.style.left = '0px';
       span.style.top = '0px';
       container.appendChild(span);
@@ -455,18 +483,25 @@ function scatterInto(container, words, opts){
       const maxX = Math.max(W - tw - pad, pad);
       const maxY = Math.max(H - th - pad, pad);
 
-      let bestX = pad, bestY = pad, bestOverlap = Infinity;
-      const margin = 12;
-      for(let a=0; a<300; a++){
-        const x = pad + Math.random()*Math.max(maxX-pad, 1);
-        const y = pad + Math.random()*Math.max(maxY-pad, 1);
-        let total = 0;
-        for(const p of placed){
-          total += overlapArea(x-margin/2, y-margin/2, tw+margin, th+margin, p);
-        }
-        if(total < bestOverlap){
-          bestOverlap = total; bestX = x; bestY = y;
-          if(total === 0) break;
+      let bestX, bestY;
+      if(item.center){
+        bestX = (W - tw) / 2;
+        bestY = (H - th) / 2;
+      } else {
+        bestX = pad; bestY = pad;
+        let bestOverlap = Infinity;
+        const margin = 12;
+        for(let a=0; a<300; a++){
+          const x = pad + Math.random()*Math.max(maxX-pad, 1);
+          const y = pad + Math.random()*Math.max(maxY-pad, 1);
+          let total = 0;
+          for(const p of placed){
+            total += overlapArea(x-margin/2, y-margin/2, tw+margin, th+margin, p);
+          }
+          if(total < bestOverlap){
+            bestOverlap = total; bestX = x; bestY = y;
+            if(total === 0) break;
+          }
         }
       }
 
@@ -476,7 +511,7 @@ function scatterInto(container, words, opts){
 
       const dx = centerX - (bestX + tw/2);
       const dy = centerY - (bestY + th/2);
-      const rot = (Math.random()-0.5)*6;
+      const rot = noRotate ? 0 : (Math.random()-0.5)*6;
       span.style.transform = `translate(${dx}px, ${dy}px) scale(.4) rotate(${rot}deg)`;
       span.style.opacity = '0';
 
@@ -530,9 +565,18 @@ function renderScene(i){
     const quoteEl = document.createElement('div');
     quoteEl.className = 'cloud-quote';
 
+    const localNext = document.createElement('button');
+    localNext.className = 'cta-inline';
+    localNext.textContent = 'дальше';
+    localNext.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      next();
+    });
+
     scene.appendChild(topHint);
     scene.appendChild(cloud);
     scene.appendChild(quoteEl);
+    scene.appendChild(localNext);
   }
 
   if(item.type === 'phrasecloud'){
@@ -561,6 +605,7 @@ function renderScene(i){
     scene.appendChild(lead);
     scene.appendChild(zone);
     scene._scatterZone = zone;
+    scene._leadEl = lead;
   }
 
   if(item.type === 'final'){
@@ -628,18 +673,35 @@ function showCurrent(){
 
   const type = SEQUENCE[index].type;
   if(type === 'phrasecloud'){
-    scatterInto(scene._scatterZone, PHRASE_CLOUD, {
+    // эта фраза всегда должна вылетать последней и крупнее остальных
+    const LAST_PHRASE = 'Как думаешь, когда сможешь сделать?';
+    const mainPhrases = PHRASE_CLOUD.filter(p => p !== LAST_PHRASE);
+    scatterInto(scene._scatterZone, mainPhrases, {
       colorVar: 'var(--deep-green)',
       staggerMs: 1000,
-      fontClamp: 'clamp(1rem, 2.3vw, 1.4rem)'
+      fontClamp: 'clamp(1rem, 2.3vw, 1.4rem)',
+      trailing: [
+        { text: LAST_PHRASE, fontClamp: 'clamp(1.35rem, 3.4vw, 1.95rem)', center: true }
+      ]
     });
   }
   if(type === 'capsule'){
-    scatterInto(scene._scatterZone, CAPSULE_WORDS, {
-      colorVar: 'var(--deep-green)',
-      staggerMs: 1150,
-      fontClamp: 'clamp(0.85rem, 2vw, 1.2rem)'
+    const leadEl = scene._leadEl;
+    // 1) крупная фраза выплывает по центру
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=> leadEl.classList.add('shown'));
     });
+    // 2) через паузу — уезжает наверх и уменьшается
+    setTimeout(()=> leadEl.classList.add('settled'), 1700);
+    // 3) и только после этого начинают вылетать пожелания
+    setTimeout(()=>{
+      scatterInto(scene._scatterZone, CAPSULE_WORDS, {
+        colorVar: 'var(--deep-green)',
+        staggerMs: 1150,
+        fontClamp: 'clamp(0.85rem, 2vw, 1.2rem)',
+        noRotate: true
+      });
+    }, 2900);
   }
 }
 
