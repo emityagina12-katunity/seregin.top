@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Коллеги</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     ВЁРСТКА / ДИЗАЙН — цвета и шрифт в :root, их можно менять.
+     ============================================================ */
+
+  :root{
+    --bg: #f5f5f0;
+    --bg-2: #f0efe8;
+    --ink: #23261f;
+    --muted: #52564a;
+    --line: rgba(35,38,31,0.14);
+    --sage: #7f9463;
+    --sage-soft: rgba(127,148,99,0.14);
+    --deep-green: #2f5233;       /* фразы Анатолия / качества / капсула */
+    --deep-green-soft: rgba(47,82,51,0.14);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Manrope', sans-serif;
+    overflow:hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #stage{
+    position:relative;
+    width:100%; height:100dvh;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    padding: 8vh 6vw;
+    cursor:pointer;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 15%, var(--bg-2), transparent 60%),
+      var(--bg);
+  }
+  #stage.no-click{ cursor:default; }
+
+  .scene{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 1.4rem;
+    padding: 8vh 6vw;
+    opacity:0;
+    transform: translateY(14px);
+    transition: opacity 1s ease, transform 1s ease;
+    pointer-events:none;
+  }
+  .scene.active{
+    opacity:1;
+    transform: translateY(0);
+    pointer-events:auto;
+  }
+
+  .line-text{
+    font-family:'Manrope', sans-serif;
+    font-weight:500;
+    font-style:normal;
+    font-size: clamp(1.5rem, 4.4vw, 2.6rem);
+    line-height:1.4;
+    max-width: 18ch;
+    color:var(--ink);
+  }
+  .line-text.emphasis{
+    font-weight:700;
+    color:var(--sage);
+  }
+
+  .hint{
+    font-family:'Manrope', sans-serif;
+    font-size: 1rem;
+    font-weight:500;
+    letter-spacing:.02em;
+    color:var(--muted);
+    opacity:.9;
+  }
+
+  /* ---------- нижняя навигация: назад / дальше (на всех экранах одинаково) ---------- */
+  .nav-btn{
+    position: fixed;
+    bottom: 20px;
+    z-index: 25;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size: 0.88rem;
+    color: var(--muted);
+    background: rgba(245,245,240,0.78);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.6rem 1.15rem;
+    cursor: pointer;
+    transition: opacity .4s ease, border-color .25s ease, color .25s ease;
+  }
+  .nav-back{ left: 20px; }
+  .nav-next{ right: 20px; }
+  .nav-btn.hidden{ opacity:0; pointer-events:none; }
+  .nav-btn:not(.hidden){ opacity:.92; pointer-events:auto; }
+  .nav-btn:hover{ color: var(--sage); border-color: var(--sage); opacity:1; }
+
+  /* ---------- прогресс-точки ---------- */
+  #progress{
+    position:fixed;
+    bottom: 30px; left:50%;
+    transform:translateX(-50%);
+    display:flex; gap:6px;
+    z-index:20;
+  }
+  #progress span{
+    width:5px; height:5px; border-radius:50%;
+    background: var(--line);
+    transition: background .3s ease, transform .3s ease;
+  }
+  #progress span.done{ background: var(--muted); }
+  #progress span.current{ background: var(--sage); transform: scale(1.5); }
+
+  /* ---------- облако качеств ---------- */
+  .cloud-wrap{
+    display:flex; flex-wrap:wrap;
+    gap: 0.6rem 1rem;
+    justify-content:center;
+    max-width: 620px;
+  }
+  .cloud-word{
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    cursor:pointer;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    color: var(--deep-green);
+    background: transparent;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 4px;
+    transition: color .25s ease, border-color .25s ease, background .25s ease;
+    user-select:none;
+  }
+  .cloud-word:hover, .cloud-word.opened{
+    border-color: var(--sage);
+    background: var(--sage-soft);
+    text-decoration-style: solid;
+  }
+  .cloud-word:nth-child(1){ font-size: clamp(1.05rem,2.9vw,1.5rem); }
+  .cloud-word:nth-child(2){ font-size: clamp(1.2rem,3.3vw,1.75rem); }
+  .cloud-word:nth-child(3){ font-size: clamp(0.95rem,2.5vw,1.25rem); }
+  .cloud-word:nth-child(4){ font-size: clamp(1.1rem,3vw,1.6rem); }
+  .cloud-word:nth-child(5){ font-size: clamp(1rem,2.7vw,1.35rem); }
+  .cloud-word:nth-child(6){ font-size: clamp(1rem,2.8vw,1.45rem); }
+  .cloud-word:nth-child(7){ font-size: clamp(1.15rem,3.1vw,1.65rem); }
+
+  .cloud-quote{
+    font-family:'Manrope', sans-serif;
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 34ch;
+    min-height: 1.4em;
+  }
+
+  /* ---------- "клубок": короткие фразы и капсула — разбросаны по экрану,
+       позиции считаются в JS так, чтобы прямоугольники текста не пересекались ---------- */
+  .scatter-zone{
+    position:absolute;
+    left:5%; right:5%;
+    top:6%; bottom: 100px;
+  }
+  .scatter-word{
+    position:absolute;
+    display:inline-block;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    white-space:nowrap;
+    opacity:0;
+    transition: opacity 1.1s ease, transform 1.1s cubic-bezier(.22,1,.36,1);
+  }
+
+  /* ---------- капсула: тёплый фон-подложка позади фраз ---------- */
+  .capsule-ambient{
+    position:absolute;
+    inset: 8%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, var(--deep-green-soft), transparent 70%);
+    filter: blur(18px);
+    opacity:.8;
+    animation: capsule-pulse 7s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes capsule-pulse{
+    0%,100%{ opacity:.55; transform: scale(1); }
+    50%{ opacity:.85; transform: scale(1.03); }
+  }
+  .capsule-lead{
+    position:absolute;
+    top: 7%;
+    left:50%;
+    transform: translateX(-50%);
+    width: 88%;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+    color: var(--ink);
+    z-index:2;
+  }
+  .capsule-zone{ top: 15%; z-index:2; }
+
+  /* ---------- финал ---------- */
+  .final-lines{
+    display:flex; flex-direction:column; gap: .5rem;
+    z-index:2;
+  }
+  .final-title{
+    font-family:'Manrope', sans-serif;
+    font-weight:800;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    color: var(--ink);
+  }
+  .final-sub{
+    font-family:'Manrope', sans-serif;
+    font-weight:500;
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    color: var(--muted);
+  }
+  .final-sign{
+    margin-top: 1.6rem;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size: 0.95rem;
+    letter-spacing: .04em;
+    color: var(--sage);
+  }
+  .replay{
+    margin-top: 2.2rem;
+    font-family:'Manrope', sans-serif;
+    font-weight:600;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor:pointer;
+    background:none; border:none;
+    opacity:.85;
+  }
+  .replay:hover{ opacity:1; color: var(--sage); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<button id="backBtn" class="nav-btn nav-back hidden" aria-label="Назад">← назад</button>
+<button id="nextBtn" class="nav-btn nav-next" aria-label="Дальше">дальше →</button>
+<div id="progress"></div>
+<div id="stage"></div>
+
+<script>
+/* ============================================================
+   ТЕКСТ САЙТА — редактируйте свободно
+   Меняйте только то, что находится между кавычками ' '.
+   ============================================================ */
+
+const SEQUENCE = [
+  { type:'line', text:'Коллеги,', cta:'что дальше?' },
+
+  { type:'phrasecloud' },
+
+  { type:'line', text:'Кажется, мы знаем эти фразы' },
+  { type:'line', text:'Мы очень хорошо их знаем :)', emphasis:true },
+
+  { type:'line', text:'Но за всеми этими короткими сообщениями мы все замечаем кое-что ещё' },
+
+  { type:'wordcloud' },
+
+  { type:'line', text:'Ты часто называешь нас коллегами' },
+  { type:'line', text:'Но мы знаем, что за этим словом для тебя стоит что-то большее' },
+  { type:'line', text:'Ты хочешь, чтобы мы были не просто людьми, которые работают вместе' },
+  { type:'line', text:'Чтобы мы помогали друг другу' },
+  { type:'line', text:'Поддерживали' },
+  { type:'line', text:'Замечали друг друга' },
+  { type:'line', text:'Оставались людьми даже тогда, когда работа заканчивается' },
+  { type:'line', text:'Ты хочешь, чтобы мы стали сообществом' },
+  { type:'line', text:'Мы знаем, какими ты хочешь видеть нас' },
+  { type:'line', text:'И, наверное, именно поэтому нам хочется сказать тебе...' },
+
+  { type:'capsule' },
+
+  { type:'final' }
+];
+
+// "Клубок" типовых рабочих фраз.
+const PHRASE_CLOUD = [
+  'Ок, спасибо',
+  'Помощь нужна?',
+  'Да, норм',
+  'Сейчас от меня что-то ещё нужно?',
+  'Ок, подумаю, спасибо',
+  'Ок, сделаю',
+  'Доки подписал',
+  'Да, давай так',
+  'Я бы сделал так...',
+  'Побуду с этим',
+  'Я бы предложил',
+  'Мне кажется, то, что нужно',
+  'Спасибо тебе',
+  'Здорово',
+  'Класс',
+  'Ок, посмотрю',
+  'Подхватишь задачу?',
+  'Что скажешь?',
+  'Понятно, спасибо',
+  'Как думаешь, когда сможешь сделать?'
+];
+
+// Слова в "облаке качеств" и фраза, которая появляется при нажатии.
+const CLOUD_WORDS = [
+  { word:'внимание',      quote:'Ты всегда замечаешь то, что другие пропускают' },
+  { word:'поддержка',     quote:'«Помощь нужна?» — и это не для галочки' },
+  { word:'справедливость',quote:'Ты сначала разбираешься, а потом решаешь' },
+  { word:'доброта',       quote:'Ты выбираешь по-человечески даже в мелочах' },
+  { word:'юмор',          quote:'Ты умеешь разрядить самый напряжённый момент' },
+  { word:'тактичность',   quote:'Ты знаешь, когда промолчать, а когда сказать' },
+  { word:'помощь',        quote:'Даже когда вопрос вообще не про работу' },
+];
+
+// Текст перед капсулой и сами слова-обещания.
+const CAPSULE_LEAD = 'Пожалуйста, никогда не переставай...';
+const CAPSULE_WORDS = [
+  '...помогать',
+  '...замечать',
+  '...верить в людей',
+  '...проявлять желание вникнуть в проблему и прийти на помощь',
+  '...оставаться собой',
+  '...поддерживать',
+  '...верить в команду',
+  '...танцевать :)',
+  '...объединять людей',
+  '...замечать то, что другие не замечают',
+  '...создавать вокруг себя пространство, в котором комфортно',
+  '...искать решения',
+  '...смеяться',
+  '...говорить «Как думаешь, когда сможешь сделать?» :))',
+  '...видеть в людях хорошее',
+  '...давать позитивную обратную связь',
+  '...поддерживать тех, кто встречается на твоём пути',
+  '...искать новые контакты',
+  '...развиваться',
+  '...сохранять лёгкость и спокойствие',
+  '...быть таким коммуникабельным, тактичным и неравнодушным'
+];
+
+// Последний экран.
+const FINAL = {
+  title: 'С днём рождения, Анатолий',
+  sub: 'Спасибо, что ты именно такой',
+  sign: '— твоя команда Толк Ай Ти'
+};
+
+/* ============================================================
+   ДВИЖОК — этот код можно не трогать
+   ============================================================ */
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+let index = 0;
+
+function buildProgress(){
+  progressEl.innerHTML = '';
+  SEQUENCE.forEach(()=>{
+    const dot = document.createElement('span');
+    progressEl.appendChild(dot);
+  });
+}
+
+function updateProgress(){
+  [...progressEl.children].forEach((dot,i)=>{
+    dot.classList.toggle('done', i < index);
+    dot.classList.toggle('current', i === index);
+  });
+}
+
+function updateNavButtons(){
+  backBtn.classList.toggle('hidden', index <= 0);
+  nextBtn.classList.toggle('hidden', SEQUENCE[index].type === 'final');
+}
+
+// Раскладывает фразы вразброс по контейнеру: каждая фраза сначала измеряется,
+// затем для неё ищется случайное место, не пересекающееся с уже размещёнными
+// фразами (проверка прямоугольников). Появляется по очереди, "вылетая" из
+// центра и застывая на своём месте.
+function scatterInto(container, words, opts){
+  const {
+    colorVar = 'var(--deep-green)',
+    staggerMs = 1000,
+    fontClamp = 'clamp(1rem, 2.4vw, 1.45rem)',
+    shuffle = true,
+    pad = 12
+  } = opts || {};
+
+  let list = words.slice();
+  if(shuffle){
+    for(let i=list.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [list[i],list[j]] = [list[j],list[i]];
+    }
+  }
+
+  const rect = container.getBoundingClientRect();
+  const W = Math.max(rect.width, 60);
+  const H = Math.max(rect.height, 60);
+  const centerX = W/2, centerY = H/2;
+  const placed = [];
+
+  function overlapArea(x,y,w,h,p){
+    let ox = Math.max(0, Math.min(x+w,p.x+p.w) - Math.max(x,p.x));
+    let oy = Math.max(0, Math.min(y+h,p.y+p.h) - Math.max(y,p.y));
+    return ox*oy;
+  }
+
+  list.forEach((w,i)=>{
+    setTimeout(()=>{
+      const span = document.createElement('span');
+      span.className = 'scatter-word';
+      span.textContent = w;
+      span.style.color = colorVar;
+      span.style.fontSize = fontClamp;
+      span.style.left = '0px';
+      span.style.top = '0px';
+      container.appendChild(span);
+
+      const tw = span.offsetWidth;
+      const th = span.offsetHeight;
+      const maxX = Math.max(W - tw - pad, pad);
+      const maxY = Math.max(H - th - pad, pad);
+
+      let bestX = pad, bestY = pad, bestOverlap = Infinity;
+      const margin = 12;
+      for(let a=0; a<300; a++){
+        const x = pad + Math.random()*Math.max(maxX-pad, 1);
+        const y = pad + Math.random()*Math.max(maxY-pad, 1);
+        let total = 0;
+        for(const p of placed){
+          total += overlapArea(x-margin/2, y-margin/2, tw+margin, th+margin, p);
+        }
+        if(total < bestOverlap){
+          bestOverlap = total; bestX = x; bestY = y;
+          if(total === 0) break;
+        }
+      }
+
+      placed.push({x:bestX, y:bestY, w:tw, h:th});
+      span.style.left = bestX + 'px';
+      span.style.top = bestY + 'px';
+
+      const dx = centerX - (bestX + tw/2);
+      const dy = centerY - (bestY + th/2);
+      const rot = (Math.random()-0.5)*6;
+      span.style.transform = `translate(${dx}px, ${dy}px) scale(.4) rotate(${rot}deg)`;
+      span.style.opacity = '0';
+
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          span.style.opacity = '1';
+          span.style.transform = `translate(0,0) scale(1) rotate(${rot}deg)`;
+        });
+      });
+    }, i*staggerMs);
+  });
+}
+
+function renderScene(i){
+  const item = SEQUENCE[i];
+  const scene = document.createElement('div');
+  scene.className = 'scene';
+
+  if(item.type === 'line'){
+    scene.innerHTML = `
+      <div class="line-text ${item.emphasis ? 'emphasis' : ''}">${item.text}</div>
+      ${item.cta ? `<div class="hint">${item.cta}</div>` : ''}
+    `;
+    stage.classList.remove('no-click');
+    scene.addEventListener('click', next);
+  }
+
+  if(item.type === 'wordcloud'){
+    // Единственный экран, где клик по экрану НЕ листает дальше —
+    // здесь клик открывает описание качества.
+    stage.classList.add('no-click');
+    const topHint = document.createElement('div');
+    topHint.className = 'hint';
+    topHint.textContent = 'нажимай на слова';
+
+    const cloud = document.createElement('div');
+    cloud.className = 'cloud-wrap';
+    CLOUD_WORDS.forEach(cw=>{
+      const w = document.createElement('span');
+      w.className = 'cloud-word';
+      w.textContent = cw.word;
+      w.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        quoteEl.textContent = cw.quote;
+        [...cloud.children].forEach(c=>c.classList.remove('opened'));
+        w.classList.add('opened');
+      });
+      cloud.appendChild(w);
+    });
+
+    const quoteEl = document.createElement('div');
+    quoteEl.className = 'cloud-quote';
+
+    scene.appendChild(topHint);
+    scene.appendChild(cloud);
+    scene.appendChild(quoteEl);
+  }
+
+  if(item.type === 'phrasecloud'){
+    stage.classList.remove('no-click');
+    scene.addEventListener('click', next);
+    const zone = document.createElement('div');
+    zone.className = 'scatter-zone';
+    scene.appendChild(zone);
+    scene._scatterZone = zone;
+  }
+
+  if(item.type === 'capsule'){
+    stage.classList.remove('no-click');
+    scene.addEventListener('click', next);
+    const ambient = document.createElement('div');
+    ambient.className = 'capsule-ambient';
+
+    const lead = document.createElement('div');
+    lead.className = 'capsule-lead';
+    lead.textContent = CAPSULE_LEAD;
+
+    const zone = document.createElement('div');
+    zone.className = 'scatter-zone capsule-zone';
+
+    scene.appendChild(ambient);
+    scene.appendChild(lead);
+    scene.appendChild(zone);
+    scene._scatterZone = zone;
+  }
+
+  if(item.type === 'final'){
+    stage.classList.add('no-click');
+    scene.innerHTML = `
+      <div class="final-lines">
+        <div class="final-title">${FINAL.title}</div>
+        <div class="final-sub">${FINAL.sub}</div>
+        <div class="final-sign">${FINAL.sign}</div>
+      </div>
+      <button class="replay">посмотреть ещё раз</button>
+    `;
+    scene.querySelector('.replay').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      restart();
+    });
+  }
+
+  return scene;
+}
+
+function next(){
+  if(index >= SEQUENCE.length - 1) return;
+  index++;
+  showCurrent();
+}
+
+function prev(){
+  if(index <= 0) return;
+  index--;
+  showCurrent();
+}
+
+function showCurrent(){
+  stage.innerHTML = '';
+  const scene = renderScene(index);
+  stage.appendChild(scene);
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=> scene.classList.add('active'));
+  });
+  updateProgress();
+  updateNavButtons();
+
+  const type = SEQUENCE[index].type;
+  if(type === 'phrasecloud'){
+    scatterInto(scene._scatterZone, PHRASE_CLOUD, {
+      colorVar: 'var(--deep-green)',
+      staggerMs: 1000,
+      fontClamp: 'clamp(1rem, 2.3vw, 1.4rem)'
+    });
+  }
+  if(type === 'capsule'){
+    scatterInto(scene._scatterZone, CAPSULE_WORDS, {
+      colorVar: 'var(--deep-green)',
+      staggerMs: 1150,
+      fontClamp: 'clamp(0.85rem, 2vw, 1.2rem)'
+    });
+  }
+}
+
+function restart(){
+  index = 0;
+  showCurrent();
+}
+
+backBtn.addEventListener('click', (e)=>{ e.stopPropagation(); prev(); });
+nextBtn.addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
+
+buildProgress();
+showCurrent();
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); next(); }
+  if(e.key === 'ArrowLeft'){ prev(); }
+});
+</script>
+</body>
+</html>
