@@ -6,12 +6,10 @@
 <title>Коллеги</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <style>
 
-  /* ============================================================
-     ВЁРСТКА / ДИЗАЙН — цвета и шрифт в :root, их можно менять.
-     ============================================================ */
 
   :root{
     --bg: #f5f5f0;
@@ -19,10 +17,10 @@
     --ink: #23261f;
     --muted: #52564a;
     --line: rgba(35,38,31,0.14);
-    --sage: #7f9463;
-    --sage-soft: rgba(127,148,99,0.14);
-    --deep-green: #2f5233;       /* фразы Анатолия / качества / капсула */
-    --deep-green-soft: rgba(47,82,51,0.14);
+    --sage: #3e8813;
+    --sage-soft: rgba(62,136,19,0.14);
+    --gold: #b8863d;
+    --gold-soft: rgba(184,134,61,0.18);
   }
 
   *{box-sizing:border-box;}
@@ -31,7 +29,7 @@
     margin:0; padding:0; height:100%;
     background:var(--bg);
     color:var(--ink);
-    font-family:'Manrope', sans-serif;
+    font-family:'Inter', sans-serif;
     overflow:hidden;
     -webkit-tap-highlight-color: transparent;
   }
@@ -45,8 +43,12 @@
     cursor:pointer;
     background:
       radial-gradient(ellipse 70% 60% at 50% 15%, var(--bg-2), transparent 60%),
+      radial-gradient(ellipse 42% 28% at 18% 72%, rgba(62,136,19,0.025), transparent 72%),
+      radial-gradient(ellipse 36% 30% at 84% 34%, rgba(184,134,61,0.018), transparent 74%),
+      radial-gradient(ellipse 58% 24% at 56% 96%, rgba(35,38,31,0.012), transparent 78%),
       var(--bg);
   }
+
   #stage.no-click{ cursor:default; }
 
   .scene{
@@ -70,224 +72,426 @@
   }
 
   .line-text{
-    font-family:'Manrope', sans-serif;
-    font-weight:500;
-    font-style:normal;
-    font-size: clamp(1.5rem, 4.4vw, 2.6rem);
+    font-family:'Fraunces', serif;
+    font-weight:400;
+    font-style:italic;
+    font-size: clamp(1.5rem, 4.4vw, 2.7rem);
     line-height:1.4;
     max-width: 18ch;
     color:var(--ink);
   }
   .line-text.emphasis{
-    font-weight:700;
+    font-weight:500;
     color:var(--sage);
   }
+  .line-svg.emphasis{ font-size:105%; }
+  .line-svg.line-climax{ font-size:123%; }
+
+  .line-scene{
+    transform: translateY(0);
+  }
+  .line-scene.active{
+    transform: translateY(0);
+  }
+  .line-svg-wrap{
+    width: min(100%, 18ch);
+    font-family:'Fraunces', serif;
+    font-size: clamp(1.5rem, 4.4vw, 2.7rem);
+    line-height:1.4;
+  }
+  .line-svg{
+    display:block;
+    width:100%;
+    height:calc(var(--line-count) * 1.4em);
+    overflow:visible;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:400;
+  }
+  .line-svg.emphasis{ font-weight:500; }
+  .line-svg text{ dominant-baseline:middle; font-size:100px; }
 
   .hint{
-    font-family:'Manrope', sans-serif;
+    font-family:'Inter', sans-serif;
     font-size: 1rem;
-    font-weight:500;
     letter-spacing:.02em;
     color:var(--muted);
     opacity:.9;
   }
 
-  /* ---------- нижняя навигация: назад / дальше (на всех экранах одинаково) ---------- */
-  .nav-btn{
-    position: fixed;
-    bottom: 20px;
-    z-index: 25;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size: 0.88rem;
-    color: var(--muted);
-    background: rgba(245,245,240,0.78);
-    backdrop-filter: blur(4px);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0.6rem 1.15rem;
-    cursor: pointer;
-    transition: opacity .4s ease, border-color .25s ease, color .25s ease;
+  .cta{
+    font-family:'Inter', sans-serif;
+    font-size: calc(1.03rem + 3px);
+    color: var(--ink);
+    border:0;
+    padding: 0.78rem 0.52rem;
+    background: transparent;
+    cursor:pointer;
+    transition: color .25s ease;
   }
-  .nav-back{ left: 20px; }
-  .nav-next{ right: 20px; }
-  .nav-btn.hidden{ opacity:0; pointer-events:none; }
-  .nav-btn:not(.hidden){ opacity:.92; pointer-events:auto; }
-  .nav-btn:hover{ color: var(--sage); border-color: var(--sage); opacity:1; }
+  .cta::after{
+    content:'→';
+    display:inline-block;
+    margin-left:.45em;
+    transition: color .25s ease;
+  }
+  .cta:hover{
+    color: var(--sage);
+  }
 
-  /* ---------- прогресс-точки ---------- */
+
+  .back-btn,
+  .next-btn{
+    position: fixed;
+    top: 20px;
+    z-index: 25;
+    font-family:'Inter', sans-serif;
+    font-size: calc(0.95rem + 3px);
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    padding: 0.72rem 0.78rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s ease, color .25s ease;
+  }
+  .back-btn{ left: 20px; }
+  .next-btn{ right: 20px; }
+  .back-btn.show,
+  .next-btn.show{ opacity: .9; pointer-events: auto; }
+  .back-btn:hover, .back-btn:focus-visible,
+  .next-btn:hover, .next-btn:focus-visible{ color: var(--sage); opacity: 1; }
+
+
+  @media (max-width: 699px){
+    .cta{
+      font-size: 0.94rem;
+      padding: 0.60rem 0.40rem;
+    }
+    .back-btn,
+    .next-btn{
+      font-size: 0.84rem;
+      padding: 0.56rem 0.58rem;
+    }
+  }
+
+
   #progress{
     position:fixed;
-    bottom: 30px; left:50%;
+    bottom: 22px; left:50%;
     transform:translateX(-50%);
     display:flex; gap:6px;
     z-index:20;
   }
   #progress span{
-    width:5px; height:5px; border-radius:50%;
+    width:4px; height:4px; border-radius:50%;
     background: var(--line);
+    opacity:.65;
     transition: background .3s ease, transform .3s ease;
   }
-  #progress span.done{ background: var(--muted); }
-  #progress span.current{ background: var(--sage); transform: scale(1.5); }
+  #progress span.done{ background: var(--muted); opacity:.72; }
+  #progress span.current{ background: var(--sage); opacity:.9; transform: scale(1.45); }
 
-  /* ---------- облако качеств ---------- */
+
+  .wordcloud-title{
+    transform: translateY(var(--cloud-offset-y, 0px));
+    will-change: transform;
+    transition: transform .35s ease;
+  }
   .cloud-wrap{
     display:flex; flex-wrap:wrap;
-    gap: 0.6rem 1rem;
+    gap: 0.82rem 1.38rem;
     justify-content:center;
-    max-width: 620px;
+    max-width: 700px;
+    transform: translateY(var(--cloud-offset-y, 0px));
+    will-change: transform;
+    transition: transform .35s ease;
   }
   .cloud-word{
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size: clamp(1.15rem, 3vw, 1.55rem);
+    font-family:'Fraunces', serif;
+    font-style:italic;
     cursor:pointer;
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    color: var(--deep-green);
+    position:relative;
+    padding: 0.1rem 0.15rem;
+    color: var(--ink);
     background: transparent;
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-underline-offset: 4px;
-    transition: color .25s ease, border-color .25s ease, background .25s ease;
+    transition: color .25s ease;
     user-select:none;
   }
   .cloud-word:hover, .cloud-word.opened{
-    border-color: var(--sage);
-    background: var(--sage-soft);
-    text-decoration-style: solid;
+    color: var(--sage);
   }
+  .cloud-word::after{
+    content:'';
+    position:absolute;
+    left:5%; right:3%; bottom:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--sage) 18%, var(--sage) 78%, transparent);
+    opacity:0;
+    transform:rotate(-1deg);
+    transition:opacity .25s ease;
+  }
+  .cloud-word:hover::after, .cloud-word.opened::after{
+    opacity:.8;
+  }
+  .cloud-word:nth-child(1){ font-size: calc(clamp(1.18rem,3.2vw,1.72rem) + 3px); transform: rotate(-2deg); }
+  .cloud-word:nth-child(2){ font-size: calc(clamp(1.4rem,3.85vw,2.04rem) + 3px); transform: rotate(1.5deg); }
+  .cloud-word:nth-child(3){ font-size: calc(clamp(1.03rem,2.8vw,1.4rem) + 3px); transform: rotate(-1deg); }
+  .cloud-word:nth-child(4){ font-size: calc(clamp(1.3rem,3.45vw,1.83rem) + 3px); transform: rotate(2deg); }
+  .cloud-word:nth-child(5){ font-size: calc(clamp(1.08rem,3vw,1.51rem) + 3px); transform: rotate(-2.5deg); }
+  .cloud-word:nth-child(6){ font-size: calc(clamp(1.13rem,3.1vw,1.62rem) + 3px); transform: rotate(1deg); }
+  .cloud-word:nth-child(7){ font-size: calc(clamp(1.35rem,3.65vw,1.94rem) + 3px); transform: rotate(-1.5deg); }
+
 
   .cloud-quote{
-    font-family:'Manrope', sans-serif;
-    font-size: 1.1rem;
+    display:grid;
+    place-items:center;
+    width:min(90vw, 34ch);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 1.12rem;
+    line-height:1.45;
+    letter-spacing:.01em;
     color: var(--muted);
-    max-width: 34ch;
-    min-height: 1.4em;
+    margin: .65rem 0 .75rem;
+    text-align:center;
   }
 
-  .cta-inline{
-    margin-top: 0.4rem;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size: 0.9rem;
-    color: var(--muted);
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0.6rem 1.3rem;
-    cursor:pointer;
-    transition: color .25s ease, border-color .25s ease, background .25s ease;
-  }
-  .cta-inline:hover{
-    color: var(--sage);
-    border-color: var(--sage);
-    background: var(--sage-soft);
+  .cloud-quote-layer{
+    grid-area:1 / 1;
+    width:100%;
+    visibility:hidden;
+    opacity:0;
+    pointer-events:none;
   }
 
-  /* ---------- "клубок": короткие фразы и капсула — разбросаны по экрану,
-       позиции считаются в JS так, чтобы прямоугольники текста не пересекались ---------- */
+  .cloud-quote-word{
+    display:inline-block;
+    white-space:nowrap;
+  }
+
+  .cloud-quote-char{
+    opacity:0;
+  }
+
+  .cloud-quote-caret{
+    display:inline-block;
+    margin-left:.08em;
+    color:var(--sage);
+    animation:terminal-caret .8s steps(1,end) infinite;
+  }
+
+  @keyframes terminal-caret{
+    0%,49%{ opacity:1; }
+    50%,100%{ opacity:0; }
+  }
+
+  .continue-wrap{
+    min-height: 44px;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0;
+    transition: opacity .9s ease;
+  }
+  .continue-wrap.show{ opacity:1; }
+
+
+  .continue-wrap.pinned{
+    position:absolute;
+    left:0; right:0; bottom: 38px;
+    margin:0;
+  }
+
+
   .scatter-zone{
     position:absolute;
-    left:5%; right:5%;
-    top:6%; bottom: 100px;
+    left:4%; right:4%;
+    top:4%; bottom: 108px;
   }
-  .scatter-word{
+  @media (max-width: 511px){
+
+    .scatter-zone{ bottom: 78px; }
+  }
+  .scatter-outer{
     position:absolute;
+    transform-origin:50% 50%;
+    will-change: transform;
+  }
+  .scatter-outer{
+    --writing-outline-size: 1.6px;
+  }
+  .scatter-outer .scatter-svg{
+    overflow:visible;
+    filter:
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent)
+      drop-shadow(0 0 0 transparent);
+    transition:filter .26s ease;
+  }
+  .scatter-outer.is-writing{
+    z-index:1000;
+  }
+  .scatter-outer.has-outline .scatter-svg{
+    filter:
+      drop-shadow(var(--writing-outline-size) 0 0 var(--bg))
+      drop-shadow(calc(var(--writing-outline-size) * -1) 0 0 var(--bg))
+      drop-shadow(0 var(--writing-outline-size) 0 var(--bg))
+      drop-shadow(0 calc(var(--writing-outline-size) * -1) 0 var(--bg))
+      drop-shadow(1.1px 1.1px 0 var(--bg))
+      drop-shadow(-1.1px 1.1px 0 var(--bg))
+      drop-shadow(1.1px -1.1px 0 var(--bg))
+      drop-shadow(-1.1px -1.1px 0 var(--bg));
+    transition-delay:.08s;
+  }
+  .scatter-inner{
     display:inline-block;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:500;
     white-space:nowrap;
-    opacity:0;
-    transition: opacity 1.1s ease, transform 1.1s cubic-bezier(.22,1,.36,1);
+    animation-name: drift-idle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  .scatter-inner--center-shimmer .scatter-svg tspan{
+    animation: scatter-center-shimmer 4.8s ease-in-out infinite;
+  }
+  @keyframes scatter-center-shimmer{
+    0%,100%{ fill: var(--sage); }
+    30%{ fill: var(--sage); }
+    58%{ fill: var(--gold); }
+    82%{ fill: var(--sage); }
   }
 
-  /* ---------- капсула: тёплый фон-подложка позади фраз ---------- */
+
+  .scatter-inner--capsule-center-shimmer .scatter-svg tspan{
+    animation: scatter-capsule-center-shimmer 4.2s ease-in-out infinite;
+  }
+  @keyframes scatter-capsule-center-shimmer{
+    0%,100%{ fill: var(--gold); }
+    14%,40%{ fill: var(--sage); }
+    54%{ fill: var(--ink); }
+    66%,92%{ fill: var(--sage); }
+  }
+  @keyframes drift-idle{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-2px); }
+  }
+
+
   .capsule-ambient{
     position:absolute;
     inset: 8%;
     border-radius: 50%;
-    background: radial-gradient(ellipse at center, var(--deep-green-soft), transparent 70%);
+    background: radial-gradient(ellipse at center, var(--gold-soft), transparent 70%);
     filter: blur(18px);
-    opacity:.8;
+    opacity:.38;
     animation: capsule-pulse 7s ease-in-out infinite;
     pointer-events:none;
   }
   @keyframes capsule-pulse{
-    0%,100%{ opacity:.55; transform: scale(1); }
-    50%{ opacity:.85; transform: scale(1.03); }
+    0%,100%{ opacity:.28; transform: scale(1); }
+    50%{ opacity:.42; transform: scale(1.015); }
   }
   .capsule-lead{
     position:absolute;
-    top: 38%;
+    top:50%;
     left:50%;
-    transform: translateX(-50%);
-    width: 88%;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
-    font-size: clamp(1.7rem, 4.6vw, 2.6rem);
-    color: var(--ink);
-    z-index:3;
-    opacity:0;
-    transition: opacity 1s ease, top 1.15s cubic-bezier(.22,1,.36,1), font-size 1.15s cubic-bezier(.22,1,.36,1);
+    width:88%;
+    color:var(--ink);
+    z-index:1001;
+    pointer-events:none;
+    transform-origin:50% 0;
   }
-  .capsule-lead.shown{ opacity:1; }
-  .capsule-lead.settled{
-    top: 7%;
-    font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+  .capsule-lead .scatter-svg{
+    display:block;
+    margin:0 auto;
+    overflow:visible;
   }
-  .capsule-zone{ top: 15%; z-index:2; }
+  .capsule-zone{ top: 22%; }
 
-  /* ---------- финал ---------- */
+
   .final-lines{
     display:flex; flex-direction:column; gap: .5rem;
     z-index:2;
   }
-  .final-title{
-    font-family:'Manrope', sans-serif;
-    font-weight:800;
-    font-size: clamp(1.8rem, 5vw, 3rem);
-    color: var(--ink);
+  .final-title-wrap{
+    width:min(100%, 30ch);
+    font-size:clamp(2rem, 5vw, 3.2rem);
+    line-height:1.25;
+  }
+  .line-svg.line-final{
+    font-size:100%;
+    font-weight:500;
   }
   .final-sub{
-    font-family:'Manrope', sans-serif;
-    font-weight:500;
+    font-family:'Fraunces', serif;
+    font-style:italic;
     font-size: clamp(1.1rem, 3vw, 1.5rem);
     color: var(--muted);
+    opacity:0;
+    transform:translateY(4px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .final-sub.show{
+    opacity:1;
+    transform:translateY(0);
   }
   .final-sign{
     margin-top: 1.6rem;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
+    font-family:'Inter', sans-serif;
     font-size: 0.95rem;
     letter-spacing: .04em;
     color: var(--sage);
+    opacity:0;
+    transform:translateY(3px);
+    transition:opacity .65s ease, transform .65s ease;
+  }
+  .final-sign.show{
+    opacity:1;
+    transform:translateY(0);
+  }
+  .final-flourish{
+    width:120px;
+    height:24px;
+    margin:.15rem auto 0;
+    overflow:visible;
+    opacity:0;
+    transition:opacity .5s ease;
+  }
+  .final-flourish path{
+    fill:none;
+    stroke:var(--sage);
+    stroke-width:1.5;
+    stroke-linecap:round;
+    stroke-dasharray:130;
+    stroke-dashoffset:130;
+    transition:stroke-dashoffset .8s ease;
+  }
+  .final-flourish.show{ opacity:.8; }
+  .final-flourish.show path{ stroke-dashoffset:0; }
+  .replay{
+    opacity:0;
+    transition:opacity .65s ease;
+  }
+  .replay.show{
+    opacity:.85;
   }
   .replay{
     margin-top: 2.2rem;
-    font-family:'Manrope', sans-serif;
-    font-weight:600;
+    font-family:'Inter', sans-serif;
     font-size: 0.9rem;
     color: var(--muted);
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor:pointer;
     background:none; border:none;
-    opacity:.85;
   }
   .replay:hover{ opacity:1; color: var(--sage); }
-
-  .final-fade{
-    opacity:0;
-    transform: translateY(10px);
-    transition: opacity .9s ease, transform .9s ease;
-  }
-  .final-fade.in{
-    opacity:1;
-    transform: translateY(0);
-  }
 
   @media (prefers-reduced-motion: reduce){
     *{ animation: none !important; transition: none !important; }
@@ -296,8 +500,8 @@
 </head>
 <body>
 
-<button id="backBtn" class="nav-btn nav-back hidden" aria-label="Назад">← назад</button>
-<button id="nextBtn" class="nav-btn nav-next" aria-label="Дальше">дальше →</button>
+<button id="backBtn" class="back-btn" aria-label="Назад">← назад</button>
+<button id="nextBtn" class="next-btn" aria-label="Дальше">дальше →</button>
 <div id="progress"></div>
 <div id="stage"></div>
 
@@ -305,6 +509,7 @@
 /* ============================================================
    ТЕКСТ САЙТА — редактируйте свободно
    Меняйте только то, что находится между кавычками ' '.
+   Ничего больше в этом файле трогать не нужно.
    ============================================================ */
 
 const SEQUENCE = [
@@ -351,12 +556,12 @@ const PHRASE_CLOUD = [
   'Мне кажется, то, что нужно',
   'Спасибо тебе',
   'Здорово',
+  'Как думаешь, когда сможешь сделать?',
   'Класс',
   'Ок, посмотрю',
   'Подхватишь задачу?',
-  'Что скажешь?',
   'Понятно, спасибо',
-  'Как думаешь, когда сможешь сделать?'
+  'Что скажешь?',
 ];
 
 // Слова в "облаке качеств" и фраза, которая появляется при нажатии.
@@ -377,34 +582,172 @@ const CAPSULE_WORDS = [
   '...замечать',
   '...верить в людей',
   '...проявлять желание вникнуть в проблему и прийти на помощь',
-  '...оставаться собой',
   '...поддерживать',
   '...искать решения',
   '...смеяться',
+  '...танцевать',
   '...видеть в людях хорошее',
   '...давать позитивную обратную связь',
   '...поддерживать тех, кто встречается на твоём пути',
   '...искать новые контакты',
   '...развиваться',
-  '...быть таким коммуникабельным, тактичным и неравнодушным'
+  '...быть таким коммуникабельным, тактичным и неравнодушным',
+  '...оставаться собой',
 ];
 
 // Последний экран.
 const FINAL = {
-  title: 'С днём рождения тебя, Анатолий!',
+  title: 'С днём рождения, Анатолий',
   sub: 'Спасибо, что ты именно такой',
   sign: '— твоя команда Толк Ай Ти'
 };
 
-/* ============================================================
-   ДВИЖОК — этот код можно не трогать
-   ============================================================ */
+// Значения — десятичные множители скорости анимации.
+// Чем больше значение, тем быстрее анимация: 1.0 — обычная текущая скорость,
+// 1.5 — в полтора раза быстрее, 2.0 — в два раза быстрее. Значения меньше 1.0 замедляют анимацию.
+const ANIMATION_SPEED = {
+  lineWriting: 5.0, // Скорость обычных центральных экранов и всех элементов SEQUENCE с type:'line'.
+  scatterWriting: 5.0, // Скорость написания в центре фраз из PHRASE_CLOUD и CAPSULE_WORDS.
+  scatterMoving: 0.3 // Скорость движения готовой фразы из PHRASE_CLOUD или CAPSULE_WORDS к финальной позиции.
+};
+
 
 const stage = document.getElementById('stage');
 const progressEl = document.getElementById('progress');
 const backBtn = document.getElementById('backBtn');
 const nextBtn = document.getElementById('nextBtn');
 let index = 0;
+let lineTimeline = null;
+let scatterTimeline = null;
+let wordcloudTimeline = null;
+let finalTimeline = null;
+
+
+let preparedPhrasecloud = null;
+let phrasecloudPrepareGeneration = 0;
+let phrasecloudResizeTimer = null;
+
+function getPhrasecloudViewportKey(){
+  return `${Math.max(window.innerWidth || document.documentElement.clientWidth || 0, 1)}x${Math.max(window.innerHeight || document.documentElement.clientHeight || 0, 1)}`;
+}
+
+function cancelPreparedPhrasecloud(){
+  phrasecloudPrepareGeneration++;
+  if(preparedPhrasecloud?.timeline){
+    preparedPhrasecloud.timeline.kill();
+  }
+  if(preparedPhrasecloud?.scene?.isConnected){
+    preparedPhrasecloud.scene.remove();
+  }
+  preparedPhrasecloud = null;
+}
+
+function wrapLineText(text, maxChars = 18){
+  const words = text.split(/\s+/);
+  const lines = [];
+  let line = '';
+  words.forEach((word)=>{
+    const candidate = line ? line + ' ' + word : word;
+    if(line && candidate.length > maxChars){
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  });
+  if(line) lines.push(line);
+  return lines;
+}
+
+function buildLineSvg(item){
+  const ns = 'http://www.w3.org/2000/svg';
+  const lines = wrapLineText(item.text);
+  const svg = document.createElementNS(ns, 'svg');
+  const climax = item.text === 'И, наверное, именно поэтому нам хочется сказать тебе...';
+  svg.className.baseVal = `line-svg ${item.emphasis ? 'emphasis' : ''} ${climax ? 'line-climax' : ''}`;
+  svg.setAttribute('viewBox', `0 0 1000 ${lines.length * 100}`);
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', item.text);
+  svg.style.setProperty('--line-count', lines.length);
+
+  const characters = [];
+  lines.forEach((line, lineIndex)=>{
+    const textNode = document.createElementNS(ns, 'text');
+    textNode.setAttribute('x', '500');
+    textNode.setAttribute('y', String(lineIndex * 100 + 50));
+    textNode.setAttribute('text-anchor', 'middle');
+    textNode.setAttribute('fill', 'transparent');
+    [...line].forEach((character)=>{
+      const tspan = document.createElementNS(ns, 'tspan');
+      tspan.textContent = character;
+      tspan.style.visibility = 'hidden';
+      tspan.style.opacity = '0';
+      tspan.style.strokeOpacity = '0';
+      tspan.style.fillOpacity = '0';
+      textNode.appendChild(tspan);
+      if(character !== ' ') characters.push(tspan);
+    });
+    svg.appendChild(textNode);
+  });
+  return {svg, characters};
+}
+
+function showStaticLine(line){
+  const color = line.svg.classList.contains('emphasis') ? 'var(--sage)' : 'var(--ink)';
+  line.characters.forEach((character)=>{
+    character.style.visibility = 'visible';
+    character.style.opacity = '1';
+    character.style.fill = color;
+    character.style.stroke = 'none';
+    character.style.strokeOpacity = '1';
+    character.style.fillOpacity = '1';
+    character.style.strokeDasharray = 'none';
+    character.style.strokeDashoffset = '0';
+  });
+}
+
+function animateLine(line, hint, onComplete = null){
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!window.gsap || reducedMotion){
+    showStaticLine(line);
+    if(hint) hint.style.opacity = '.9';
+    if(onComplete) onComplete();
+    return;
+  }
+
+  const color = line.svg.classList.contains('emphasis') ? 'var(--sage)' : 'var(--ink)';
+  line.characters.forEach((character)=>{
+    const length = Math.max(character.getComputedTextLength(), 1);
+    character.style.visibility = 'hidden';
+    character.style.opacity = '0';
+    character.style.fill = 'transparent';
+    character.style.stroke = color;
+    character.style.strokeOpacity = '0';
+    character.style.fillOpacity = '0';
+    character.style.strokeWidth = '.8';
+    character.style.paintOrder = 'stroke';
+    character.style.strokeDasharray = `${length} ${length}`;
+    character.style.strokeDashoffset = String(length);
+  });
+
+  const timeline = gsap.timeline({onComplete:()=>{
+    if(hint) gsap.to(hint, {opacity:.9, y:0, duration:.28, ease:'power1.out'});
+    if(onComplete) onComplete();
+  }});
+
+  const speed = Math.max(Number(ANIMATION_SPEED.lineWriting) || 1, 0.1);
+  const strokeDuration = .18 / speed;
+  const fillDuration = .08 / speed;
+  const fillStartOffset = .14 / speed;
+  const characterDuration = fillStartOffset + fillDuration;
+  line.characters.forEach((character, characterIndex)=>{
+    const start = characterIndex * characterDuration;
+    timeline.set(character, {visibility:'visible', opacity:1, strokeOpacity:1, fillOpacity:0}, start);
+    timeline.to(character, {strokeDashoffset:0, duration:strokeDuration, ease:'none'}, start);
+    timeline.to(character, {fill:color, fillOpacity:1, strokeOpacity:0, duration:fillDuration, ease:'power1.out'}, start + fillStartOffset);
+  });
+  lineTimeline = timeline;
+}
 
 function buildProgress(){
   progressEl.innerHTML = '';
@@ -421,228 +764,1569 @@ function updateProgress(){
   });
 }
 
-function updateNavButtons(){
-  backBtn.classList.toggle('hidden', index <= 0);
-  const type = SEQUENCE[index].type;
-  nextBtn.classList.toggle('hidden', type === 'final' || type === 'wordcloud');
+function updateNavigationButtons(){
+  backBtn.classList.toggle('show', index > 0);
+  nextBtn.classList.toggle('show', index < SEQUENCE.length - 1);
 }
 
-// Раскладывает фразы вразброс по контейнеру: каждая фраза сначала измеряется,
-// затем для неё ищется случайное место, не пересекающееся с уже размещёнными
-// фразами (проверка прямоугольников). Появляется по очереди, "вылетая" из
-// центра и застывая на своём месте.
+function buildScatterSvg(text, colorVar, fontClamp){
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  const textNode = document.createElementNS(ns, 'text');
+  const characters = [];
+  svg.classList.add('scatter-svg');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', text);
+  svg.style.fontFamily = "'Fraunces', serif";
+  svg.style.fontStyle = 'italic';
+  svg.style.fontWeight = '500';
+  svg.style.fontSize = fontClamp;
+  textNode.setAttribute('x', '0');
+  textNode.setAttribute('y', '0');
+  textNode.setAttribute('fill', 'transparent');
+  [...text].forEach((character)=>{
+    const tspan = document.createElementNS(ns, 'tspan');
+    tspan.textContent = character;
+    tspan.style.visibility = 'hidden';
+    tspan.style.opacity = '0';
+    tspan.style.strokeOpacity = '0';
+    tspan.style.fillOpacity = '0';
+    textNode.appendChild(tspan);
+    if(character !== ' ') characters.push(tspan);
+  });
+  svg.appendChild(textNode);
+  return {svg, characters, textNode, colorVar};
+}
+
+function buildWrappedScatterSvg(text, colorVar, fontSize, maxWidth, forceMultiline = false){
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  const characters = [];
+  const padding = 8;
+  const lineHeight = fontSize * 1.18;
+  const safeMaxWidth = Math.max(120, maxWidth);
+
+  svg.classList.add('scatter-svg');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', text);
+  svg.style.fontFamily = "'Fraunces', serif";
+  svg.style.fontStyle = 'italic';
+  svg.style.fontWeight = '500';
+  svg.style.fontSize = `${fontSize}px`;
+
+  if(context){
+    context.font = `italic 500 ${fontSize}px Fraunces`;
+  }
+
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  const measure = (value) => context ? context.measureText(value).width : value.length * fontSize * .55;
+  const groups = forceMultiline && words.length > 2
+    ? [words.slice(0, Math.ceil(words.length / 2)), words.slice(Math.ceil(words.length / 2))]
+    : [words];
+
+  groups.forEach((groupWords)=>{
+    let currentLine = '';
+    groupWords.forEach((word)=>{
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if(currentLine && measure(candidate) > safeMaxWidth){
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = candidate;
+      }
+    });
+    if(currentLine) lines.push(currentLine);
+  });
+  if(!lines.length) lines.push(text);
+
+  const measuredWidths = lines.map((line)=>measure(line));
+  const contentWidth = Math.min(safeMaxWidth, Math.max(...measuredWidths, 1));
+  const svgWidth = contentWidth + padding * 2;
+  const svgHeight = padding * 2 + fontSize + Math.max(0, lines.length-1) * lineHeight + fontSize * .22;
+
+  lines.forEach((line, lineIndex)=>{
+    const textNode = document.createElementNS(ns, 'text');
+    const lineWidth = measuredWidths[lineIndex];
+    textNode.setAttribute('x', String(padding + Math.max(0, (contentWidth-lineWidth)/2)));
+    textNode.setAttribute('y', String(padding + fontSize + lineIndex*lineHeight));
+    textNode.setAttribute('fill', 'transparent');
+    [...line].forEach((character)=>{
+      const tspan = document.createElementNS(ns, 'tspan');
+      tspan.textContent = character;
+      tspan.style.visibility = 'hidden';
+      tspan.style.opacity = '0';
+      tspan.style.strokeOpacity = '0';
+      tspan.style.fillOpacity = '0';
+      textNode.appendChild(tspan);
+      if(character !== ' ') characters.push(tspan);
+    });
+    svg.appendChild(textNode);
+  });
+
+  svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+  svg.style.width = `${svgWidth}px`;
+  svg.style.height = `${svgHeight}px`;
+  return {svg, characters, width:svgWidth, height:svgHeight, lineCount:lines.length, lines};
+}
+
+
+const PHRASECLOUD_BASE_FONT_SIZE = 40;
+
+
+const PHRASECLOUD_FONT_REDUCTION_INTENSITY = 20;
+
+function getPhrasecloudFontReductionIntensity(){
+  return Math.min(100, Math.max(1, Number(PHRASECLOUD_FONT_REDUCTION_INTENSITY) || 1));
+}
+
+function getPhrasecloudResponsiveScale(){
+  const viewportWidth = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+  const fullSizeWidth = 1200;
+  if(viewportWidth >= fullSizeWidth) return 1;
+
+
+  const intensity = getPhrasecloudFontReductionIntensity();
+  const minimumScaleAt512 = 1 - (intensity - 1) / 99;
+  if(viewportWidth <= 512) return Math.max(0, minimumScaleAt512);
+
+  const progress = Math.min(1, Math.max(0, (viewportWidth - 512) / (fullSizeWidth - 512)));
+  const smoothProgress = progress * progress * (3 - 2 * progress);
+  return Math.max(0, minimumScaleAt512 + (1 - minimumScaleAt512) * smoothProgress);
+}
+
+
+function getPhrasecloudCompactWritingFontSize(){
+  const viewportWidth = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+  if(viewportWidth >= 512) return PHRASECLOUD_BASE_FONT_SIZE;
+
+  const progress = Math.min(1, Math.max(0, (viewportWidth-320)/(512-320)));
+  return 28 + progress*6;
+}
+
+function getPhrasecloudWritingScale(){
+  const viewportWidth = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+  if(viewportWidth >= 512) return 1;
+  return getPhrasecloudCompactWritingFontSize() / PHRASECLOUD_BASE_FONT_SIZE;
+}
+
+
+function getPhrasecloudCompactFinalScale(){
+  const viewportWidth = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+  if(viewportWidth >= 512) return 1;
+  const progress = Math.min(1, Math.max(0, (viewportWidth-320)/(512-320)));
+  return .64 + progress*.14;
+}
+
+
+function getPhrasecloudMinimumAdaptiveScale(preferredScale){
+  if(preferredScale >= 1) return 1;
+  return Math.max(0.84, preferredScale - 0.12);
+}
+
 function scatterInto(container, words, opts){
   const {
-    colorVar = 'var(--deep-green)',
-    staggerMs = 1000,
-    fontClamp = 'clamp(1rem, 2.4vw, 1.45rem)',
-    shuffle = true,
-    pad = 12,
-    trailing = [],   // фразы, которые всегда идут последними, каждая может иметь свой fontClamp
-    noRotate = false // если true — фразы располагаются строго горизонтально, без наклона
+    colorVar = 'var(--ink)',
+    fontClamp = 'clamp(1rem, 2.6vw, 1.5rem)',
+    onDone = null,
+    reserveCenter = false,
+    layoutShiftX = 0,
+    layoutMode = 'radial',
+    keepLastPhraseCentered = false,
+    enableCenterShimmer = false,
+    centerShimmerClass = 'scatter-inner--center-shimmer',
+    reserveCenterWritingBand = true,
+    forceMultilineAboveWords = null,
+    layoutProfile = 'default',
+    onEarlyAdvanceReady = null,
+    earlyAdvanceAfter = 2,
+    paused = false,
+    registerTimeline = true
   } = opts || {};
 
-  let list = words.slice();
-  if(shuffle){
-    for(let i=list.length-1;i>0;i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [list[i],list[j]] = [list[j],list[i]];
-    }
-  }
-
-  // объединяем обычные фразы (со стандартным размером шрифта) и "хвостовые"
-  // фразы (со своим, обычно увеличенным, размером шрифта)
-  const combined = list.map(w => ({ text:w, fontClamp }))
-    .concat(trailing.map(t => ({ text:t.text, fontClamp: t.fontClamp || fontClamp })));
-
   const rect = container.getBoundingClientRect();
-  const W = Math.max(rect.width, 60);
-  const H = Math.max(rect.height, 60);
+  const W = Math.max(rect.width, 1);
+  const H = Math.max(rect.height, 1);
+  const n = words.length;
+
   const centerX = W/2, centerY = H/2;
-  const placed = [];
+  const capsuleLayout = layoutProfile === 'capsule';
+  const viewportWidthForScale = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+  const getCapsuleResponsiveScale = ()=>{
 
-  function overlapArea(x,y,w,h,p){
-    let ox = Math.max(0, Math.min(x+w,p.x+p.w) - Math.max(x,p.x));
-    let oy = Math.max(0, Math.min(y+h,p.y+p.h) - Math.max(y,p.y));
-    return ox*oy;
-  }
 
-  combined.forEach((item,i)=>{
-    setTimeout(()=>{
-      const span = document.createElement('span');
-      span.className = 'scatter-word';
-      span.textContent = item.text;
-      span.style.color = colorVar;
-      span.style.fontSize = item.fontClamp;
-      span.style.left = '0px';
-      span.style.top = '0px';
-      container.appendChild(span);
+    if(viewportWidthForScale >= 1200) return 1;
+    if(viewportWidthForScale >= 900){
+      const progress = (viewportWidthForScale-900)/(1200-900);
+      return .90 + progress*.10;
+    }
+    if(viewportWidthForScale >= 700){
+      const progress = (viewportWidthForScale-700)/(900-700);
+      return .83 + progress*.07;
+    }
+    if(viewportWidthForScale >= 512){
+      const progress = (viewportWidthForScale-512)/(700-512);
+      return .60 + progress*.12;
+    }
+    const progress = Math.min(1, Math.max(0, (viewportWidthForScale-320)/(512-320)));
+    return .44 + progress*.16;
+  };
+  const getCapsuleMinimumScale = ()=>{
+    if(viewportWidthForScale >= 1200) return .86;
+    if(viewportWidthForScale >= 900) return .78;
+    if(viewportWidthForScale >= 700){
+      const progress = (viewportWidthForScale-700)/(900-700);
+      return .66 + progress*.12;
+    }
+    if(viewportWidthForScale >= 512){
+      const progress = (viewportWidthForScale-512)/(700-512);
+      return .48 + progress*.18;
+    }
+    const progress = Math.min(1, Math.max(0, (viewportWidthForScale-320)/(512-320)));
+    return .36 + progress*.12;
+  };
+  const getCapsuleWritingScale = ()=>{
+    if(viewportWidthForScale >= 700) return getPhrasecloudWritingScale();
+    if(viewportWidthForScale >= 512){
+      const progress = (viewportWidthForScale-512)/(700-512);
+      return .76 + progress*.10;
+    }
+    const progress = Math.min(1, Math.max(0, (viewportWidthForScale-320)/(512-320)));
+    return .60 + progress*.16;
+  };
+  const phrasecloudScale = layoutMode === 'phrasecloudFrame'
+    ? (capsuleLayout ? getCapsuleResponsiveScale() : getPhrasecloudResponsiveScale())
+    : 1;
+  const phrasecloudWritingScale = layoutMode === 'phrasecloudFrame'
+    ? (capsuleLayout ? getCapsuleWritingScale() : getPhrasecloudWritingScale())
+    : 1;
+  const phrasecloudWritingMaxWidth = Math.max(150, W*.84);
 
-      const tw = span.offsetWidth;
-      const th = span.offsetHeight;
-      const maxX = Math.max(W - tw - pad, pad);
-      const maxY = Math.max(H - th - pad, pad);
+  const initScatterCharacters = (characters)=>{
+    characters.forEach((character)=>{
+      const length = Math.max(character.getComputedTextLength(), 1);
+      character.style.fill = 'transparent';
+      character.style.stroke = colorVar;
+      character.style.strokeOpacity = '0';
+      character.style.fillOpacity = '0';
+      character.style.strokeWidth = '.8';
+      character.style.paintOrder = 'stroke';
+      character.style.strokeDasharray = `${length} ${length}`;
+      character.style.strokeDashoffset = String(length);
+    });
+  };
 
-      let bestX, bestY;
-      if(item.center){
-        bestX = (W - tw) / 2;
-        bestY = (H - th) / 2;
-      } else {
-        bestX = pad; bestY = pad;
-        let bestOverlap = Infinity;
-        const margin = 12;
-        for(let a=0; a<300; a++){
-          const x = pad + Math.random()*Math.max(maxX-pad, 1);
-          const y = pad + Math.random()*Math.max(maxY-pad, 1);
-          let total = 0;
-          for(const p of placed){
-            total += overlapArea(x-margin/2, y-margin/2, tw+margin, th+margin, p);
+  const phrases = words.map((word, originalIndex)=>{
+    const outer = document.createElement('span');
+    const inner = document.createElement('span');
+    let scatterSvg = buildScatterSvg(word, colorVar, fontClamp);
+    outer.className = 'scatter-outer';
+    outer.style.visibility = 'hidden';
+    outer.style.opacity = '0';
+    inner.className = 'scatter-inner';
+    inner.style.color = colorVar;
+    inner.style.animationDelay = (Math.random()*2).toFixed(2) + 's';
+    inner.style.animationDuration = (4.5 + Math.random()*2).toFixed(2) + 's';
+    inner.style.animationPlayState = 'paused';
+    inner.appendChild(scatterSvg.svg);
+    outer.appendChild(inner);
+    container.appendChild(outer);
+
+    let bbox = scatterSvg.textNode.getBBox();
+    const padding = 6;
+    let naturalWidth = bbox.width + padding * 2;
+    let naturalHeight = bbox.height + padding * 2;
+    let wrapped = false;
+    let wrapLines = null;
+
+    const wordCount = word.trim().split(/\s+/).filter(Boolean).length;
+    const multilineThresholdValue = forceMultilineAboveWords === null || forceMultilineAboveWords === undefined
+      ? NaN
+      : Number(forceMultilineAboveWords);
+    const multilineThreshold = Number.isFinite(multilineThresholdValue)
+      ? Math.max(1, Math.floor(multilineThresholdValue))
+      : null;
+    const forceWordWrap = multilineThreshold !== null && wordCount > multilineThreshold;
+    if(layoutMode === 'phrasecloudFrame' && (forceWordWrap || naturalWidth * phrasecloudWritingScale > phrasecloudWritingMaxWidth)){
+
+
+      const finalWrapMaxWidth = phrasecloudWritingMaxWidth / Math.max(phrasecloudWritingScale, .01);
+      const wrappedSvg = buildWrappedScatterSvg(
+        word,
+        colorVar,
+        PHRASECLOUD_BASE_FONT_SIZE,
+        finalWrapMaxWidth,
+        forceWordWrap
+      );
+      if(wrappedSvg.lineCount > 1){
+        inner.replaceChildren(wrappedSvg.svg);
+        scatterSvg = wrappedSvg;
+        naturalWidth = wrappedSvg.width;
+        naturalHeight = wrappedSvg.height;
+        wrapped = true;
+        wrapLines = wrappedSvg.lines;
+      }
+    }
+
+    if(!wrapped){
+      scatterSvg.svg.setAttribute('viewBox', `${bbox.x-padding} ${bbox.y-padding} ${naturalWidth} ${naturalHeight}`);
+      scatterSvg.svg.style.width = naturalWidth + 'px';
+      scatterSvg.svg.style.height = naturalHeight + 'px';
+    }
+
+    initScatterCharacters(scatterSvg.characters);
+
+    const isCenteredFinal = layoutMode === 'phrasecloudFrame' && keepLastPhraseCentered && originalIndex === n-1;
+
+
+    const finalScale = isCenteredFinal ? (capsuleLayout ? phrasecloudScale : 1) : phrasecloudScale;
+    const width = naturalWidth * finalScale;
+    const height = naturalHeight * finalScale;
+
+    return {
+      word,
+      outer,
+      inner,
+      characters: scatterSvg.characters,
+      naturalWidth,
+      naturalHeight,
+      width,
+      height,
+      halfWidth: width/2,
+      halfHeight: height/2,
+      finalScale,
+      wrapped,
+      wrapLines,
+      originalIndex,
+      rot: 0
+    };
+  });
+
+  const safeLeft = W * 0.08;
+  const safeRight = W * 0.92;
+  const safeTop = H * 0.10;
+  const safeBottom = H * 0.88;
+  const gapX = 28;
+  const gapY = 22;
+  const placedRects = [];
+  const layoutCenterX = centerX + layoutShiftX;
+  const holeRadiusX = W * .19;
+  const holeRadiusY = H * .22;
+
+  const getRotatedExtents = (width, height, deg) => {
+    const angle = Math.abs(deg) * Math.PI / 180;
+    return {
+      halfWidth: Math.abs(Math.cos(angle)) * width/2 + Math.abs(Math.sin(angle)) * height/2,
+      halfHeight: Math.abs(Math.sin(angle)) * width/2 + Math.abs(Math.cos(angle)) * height/2
+    };
+  };
+  const buildPlacementRect = (x, y, width, height, deg, horizontalGap, verticalGap) => {
+    const extents = getRotatedExtents(width, height, deg);
+    return {
+      left: x - extents.halfWidth - horizontalGap/2,
+      right: x + extents.halfWidth + horizontalGap/2,
+      top: y - extents.halfHeight - verticalGap/2,
+      bottom: y + extents.halfHeight + verticalGap/2
+    };
+  };
+  const rectsOverlap = (a, b) => a.left < b.right && a.right > b.left
+    && a.top < b.bottom && a.bottom > b.top;
+  const overlapArea = (a, b) => {
+    const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+    const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    return width * height;
+  };
+  const intrudesCenterHole = (rect) => {
+    if(!reserveCenter || layoutMode === 'phrasecloudFrame') return false;
+    const nearestX = Math.min(Math.max(layoutCenterX, rect.left), rect.right);
+    const nearestY = Math.min(Math.max(centerY, rect.top), rect.bottom);
+    return ((nearestX-layoutCenterX)/holeRadiusX)**2 + ((nearestY-centerY)/holeRadiusY)**2 < 1;
+  };
+
+  const finalPhrase = layoutMode === 'phrasecloudFrame' && keepLastPhraseCentered
+    ? phrases[phrases.length-1]
+    : null;
+  const placementOrder = [...phrases]
+    .filter((phrase)=>phrase !== finalPhrase)
+    .sort((a, b)=>b.width-a.width);
+  const applyPlacement = (phrase, chosen) => {
+    phrase.targetX = chosen.x;
+    phrase.targetY = chosen.y;
+    phrase.rot = chosen.rotation;
+    phrase.outer.style.left = chosen.x + 'px';
+    phrase.outer.style.top = chosen.y + 'px';
+    placedRects.push(chosen.rect);
+  };
+
+  if(layoutMode === 'phrasecloudFrame'){
+    const viewportWidth = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+    const viewportHeight = Math.max(document.documentElement.clientHeight || window.innerHeight || 0, 1);
+    const compactLayout = viewportWidth < 512;
+    const phrasecloudGapX = compactLayout ? 8 : viewportWidth < 900 ? 8 : viewportWidth < 1200 ? 10 : 14;
+    const phrasecloudGapY = compactLayout ? 8 : viewportWidth < 900 ? 7 : 10;
+    const baseFrameTop = H * (compactLayout ? .020 : .035);
+
+
+    let compactSafeTop = baseFrameTop;
+    if(compactLayout && viewportHeight < 700){
+      const visibleTopButtons = [backBtn, nextBtn].filter((button)=>button?.classList.contains('show'));
+      const localButtonsBottom = visibleTopButtons.reduce((maxBottom, button)=>{
+        const buttonRect = button.getBoundingClientRect();
+        const localBottom = buttonRect.bottom - rect.top + 8;
+        return Number.isFinite(localBottom) ? Math.max(maxBottom, localBottom) : maxBottom;
+      }, 0);
+      if(localButtonsBottom > 0){
+        compactSafeTop = Math.max(baseFrameTop, localButtonsBottom);
+      }
+    }
+
+    const frameBounds = {
+      left: W * (compactLayout ? .020 : viewportWidth < 900 ? .020 : .035),
+      right: W * (compactLayout ? .980 : viewportWidth < 900 ? .980 : .965),
+      top: compactLayout ? compactSafeTop : viewportWidth < 900 ? H*.025 : baseFrameTop,
+      bottom: H * (compactLayout ? .985 : viewportWidth < 900 ? .985 : .955)
+    };
+
+
+    const PHRASECLOUD_LAYOUT_VARIANTS = 30;
+    const layoutVariant = Math.floor(Math.random() * PHRASECLOUD_LAYOUT_VARIANTS);
+    const createSeededRandom = (seed)=>{
+      let state = seed >>> 0;
+      return ()=>{
+        state += 0x6D2B79F5;
+        let value = state;
+        value = Math.imul(value ^ value >>> 15, value | 1);
+        value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+        return ((value ^ value >>> 14) >>> 0) / 4294967296;
+      };
+    };
+    const rng = createSeededRandom(0x9E3779B9 ^ ((layoutVariant + 1) * 0x85EBCA6B));
+    const randomBetween = (min, max) => min + rng() * (max - min);
+    const shuffled = (items)=>{
+      const result = [...items];
+      for(let i=result.length-1;i>0;i--){
+        const j = Math.floor(rng() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    };
+    const signedRandom = (minAbs, maxAbs)=>{
+      const value = randomBetween(minAbs, maxAbs);
+      return rng() < .5 ? -value : value;
+    };
+
+    const minViewportSide = Math.min(W, H);
+    const tiltMultiplier = compactLayout
+      ? Math.max(.28, Math.min(.65, minViewportSide / 760))
+      : (minViewportSide >= 900 ? 1 : Math.max(.35, minViewportSide / 900));
+
+    const sorted = [...placementOrder].sort((a,b)=>b.naturalWidth-a.naturalWidth);
+    const largePhrases = sorted.slice(0, Math.min(4, sorted.length));
+    const remaining = sorted.slice(largePhrases.length);
+    const mediumCount = Math.ceil(remaining.length / 2);
+    const mediumPhrases = remaining.slice(0, mediumCount);
+    const shortPhrases = remaining.slice(mediumCount);
+
+    const setPhrasecloudScale = (scale)=>{
+      phrases.forEach((phrase)=>{
+
+
+        if(phrase === finalPhrase && !capsuleLayout) return;
+        phrase.finalScale = scale;
+        phrase.width = phrase.naturalWidth * scale;
+        phrase.height = phrase.naturalHeight * scale;
+        phrase.halfWidth = phrase.width / 2;
+        phrase.halfHeight = phrase.height / 2;
+      });
+    };
+
+
+    const centerWritingBandHeight = compactLayout
+      ? Math.max(
+          getPhrasecloudCompactWritingFontSize(),
+          finalPhrase ? finalPhrase.naturalHeight : PHRASECLOUD_BASE_FONT_SIZE
+        ) + 6
+      : Math.max(
+          PHRASECLOUD_BASE_FONT_SIZE,
+          finalPhrase ? finalPhrase.naturalHeight : PHRASECLOUD_BASE_FONT_SIZE
+        ) + 14;
+    const centerWritingBand = {
+      left: frameBounds.left,
+      right: frameBounds.right,
+      top: centerY - centerWritingBandHeight / 2,
+      bottom: centerY + centerWritingBandHeight / 2
+    };
+
+    const makeAssignment = (phrase, x, y, rotation)=>({phrase, x, y, rotation});
+
+
+    const solveMaximumScale = (assignments, desiredScale)=>{
+      let limit = Math.max(.01, desiredScale);
+      const metrics = assignments.map((assignment)=>{
+        const extents = getRotatedExtents(
+          assignment.phrase.naturalWidth,
+          assignment.phrase.naturalHeight,
+          assignment.rotation
+        );
+        return {...assignment, extents};
+      });
+
+      metrics.forEach(({x, y, extents})=>{
+        if(extents.halfWidth > 0){
+          limit = Math.min(
+            limit,
+            (x - frameBounds.left - phrasecloudGapX / 2) / extents.halfWidth,
+            (frameBounds.right - x - phrasecloudGapX / 2) / extents.halfWidth
+          );
+        }
+        if(extents.halfHeight > 0){
+          limit = Math.min(
+            limit,
+            (y - frameBounds.top - phrasecloudGapY / 2) / extents.halfHeight,
+            (frameBounds.bottom - y - phrasecloudGapY / 2) / extents.halfHeight
+          );
+
+          if(reserveCenterWritingBand){
+            if(y < centerY){
+              limit = Math.min(limit, (centerWritingBand.top - phrasecloudGapY / 2 - y) / extents.halfHeight);
+            } else {
+              limit = Math.min(limit, (y - centerWritingBand.bottom - phrasecloudGapY / 2) / extents.halfHeight);
+            }
           }
-          if(total < bestOverlap){
-            bestOverlap = total; bestX = x; bestY = y;
-            if(total === 0) break;
-          }
+        }
+      });
+
+      for(let i=0;i<metrics.length;i++){
+        for(let j=i+1;j<metrics.length;j++){
+          const first = metrics[i];
+          const second = metrics[j];
+          const dx = Math.abs(first.x - second.x);
+          const dy = Math.abs(first.y - second.y);
+          const xDenominator = first.extents.halfWidth + second.extents.halfWidth;
+          const yDenominator = first.extents.halfHeight + second.extents.halfHeight;
+          const xLimit = xDenominator > 0 ? (dx - phrasecloudGapX) / xDenominator : Infinity;
+          const yLimit = yDenominator > 0 ? (dy - phrasecloudGapY) / yDenominator : Infinity;
+
+          limit = Math.min(limit, Math.max(xLimit, yLimit));
         }
       }
 
-      placed.push({x:bestX, y:bestY, w:tw, h:th});
-      span.style.left = bestX + 'px';
-      span.style.top = bestY + 'px';
+      return Math.max(.01, Math.min(desiredScale, limit * .985));
+    };
 
-      const dx = centerX - (bestX + tw/2);
-      const dy = centerY - (bestY + th/2);
-      const rot = noRotate ? 0 : (Math.random()-0.5)*6;
-      span.style.transform = `translate(${dx}px, ${dy}px) scale(.4) rotate(${rot}deg)`;
-      span.style.opacity = '0';
+    const buildCompactAssignments = ({minimumScaleOverride=null, allowTinyEmergency=true}={})=>{
+      const preferredScale = capsuleLayout ? phrasecloudScale : getPhrasecloudCompactFinalScale();
+      const requestedMinimum = Number.isFinite(Number(minimumScaleOverride))
+        ? Math.max(.08, Number(minimumScaleOverride))
+        : null;
+      const usableWidth = frameBounds.right-frameBounds.left;
+      const fullRegion = {top:frameBounds.top, bottom:frameBounds.bottom};
+      const topRegion = reserveCenterWritingBand
+        ? {top:frameBounds.top, bottom:centerWritingBand.top - 6}
+        : fullRegion;
+      const bottomRegion = reserveCenterWritingBand
+        ? {top:centerWritingBand.bottom + 6, bottom:frameBounds.bottom}
+        : null;
+      const compactGapX = Math.max(6, phrasecloudGapX);
+      const compactGapY = Math.max(5, phrasecloudGapY - 2);
+      const rowJitterY = 2.2;
+      const itemJitterX = 1.8;
 
-      requestAnimationFrame(()=>{
-        requestAnimationFrame(()=>{
-          span.style.opacity = '1';
-          span.style.transform = `translate(0,0) scale(1) rotate(${rot}deg)`;
-        });
+
+      const compactRotation = new Map();
+      shuffled(placementOrder).forEach((phrase)=>{
+        const magnitude = randomBetween(.7, 1.8);
+        compactRotation.set(phrase, rng() < .5 ? -magnitude : magnitude);
       });
-    }, i*staggerMs);
+
+
+      const partitionRows = (rows, topCapacity, bottomCapacity)=>{
+        if(!rows.length) return {topRows:[], bottomRows:[]};
+        const effectiveHeights = rows.map((row)=>Math.ceil(row.height + compactGapY));
+        const totalEffective = effectiveHeights.reduce((sum,value)=>sum+value,0);
+        const topLimit = Math.floor(topCapacity + compactGapY);
+        const bottomLimit = Math.floor(bottomCapacity + compactGapY);
+        const states = new Map([[0, 0]]);
+
+        effectiveHeights.forEach((height,rowIndex)=>{
+          const snapshot = [...states.entries()];
+          snapshot.forEach(([sum,mask])=>{
+            const nextSum = sum + height;
+            if(nextSum > topLimit || states.has(nextSum)) return;
+            states.set(nextSum, mask | (1 << rowIndex));
+          });
+        });
+
+        let best = null;
+        states.forEach((mask, topEffective)=>{
+          const bottomEffective = totalEffective - topEffective;
+          if(bottomEffective > bottomLimit) return;
+          const topLoad = topCapacity > 0 ? topEffective / Math.max(topLimit,1) : 1;
+          const bottomLoad = bottomCapacity > 0 ? bottomEffective / Math.max(bottomLimit,1) : 1;
+          const score = Math.abs(topLoad-bottomLoad);
+          if(!best || score < best.score) best = {mask, score};
+        });
+        if(!best) return null;
+
+        const topRows = [];
+        const bottomRows = [];
+        rows.forEach((row,rowIndex)=>{
+          ((best.mask & (1 << rowIndex)) ? topRows : bottomRows).push(row);
+        });
+        return {topRows, bottomRows};
+      };
+
+      const buildAtScale = (scale)=>{
+        const metrics = placementOrder.map((phrase)=>{
+          const rotation = compactRotation.get(phrase) || 0;
+          const extents = getRotatedExtents(
+            phrase.naturalWidth * scale,
+            phrase.naturalHeight * scale,
+            rotation
+          );
+          return {
+            phrase,
+            rotation,
+            width:extents.halfWidth*2,
+            height:extents.halfHeight*2
+          };
+        });
+
+
+        const rows = [];
+        [...metrics]
+          .sort((a,b)=>b.width-a.width)
+          .forEach((metric)=>{
+            const fittingRows = rows
+              .map((row)=>({
+                row,
+                remaining:usableWidth-row.width-(row.items.length ? compactGapX : 0)-metric.width
+              }))
+              .filter(({remaining})=>remaining >= 0)
+              .sort((a,b)=>a.remaining-b.remaining || a.row.items.length-b.row.items.length);
+            const chosen = fittingRows[0]?.row;
+            if(chosen){
+              chosen.items.push(metric);
+              chosen.width += compactGapX + metric.width;
+              chosen.height = Math.max(chosen.height, metric.height + rowJitterY*2);
+            } else {
+              if(metric.width > usableWidth) return;
+              rows.push({items:[metric], width:metric.width, height:metric.height + rowJitterY*2});
+            }
+          });
+
+        if(rows.reduce((count,row)=>count+row.items.length,0) !== metrics.length) return null;
+
+        let partition = null;
+        if(reserveCenterWritingBand){
+          const topCapacity = Math.max(0, topRegion.bottom-topRegion.top);
+          const bottomCapacity = Math.max(0, bottomRegion.bottom-bottomRegion.top);
+          partition = partitionRows(rows, topCapacity, bottomCapacity);
+          if(!partition) return null;
+        }
+
+        const assignments = [];
+        const placeRows = (rowsForRegion, region)=>{
+          if(!rowsForRegion.length) return;
+
+          const orderedRows = [...rowsForRegion].sort((a,b)=>b.height-a.height);
+          if(rng() < .5) orderedRows.reverse();
+          const contentHeight = orderedRows.reduce((sum,row)=>sum+row.height,0)
+            + Math.max(0, orderedRows.length-1)*compactGapY;
+          const freeHeight = Math.max(0, (region.bottom-region.top)-contentHeight);
+          const extraGap = freeHeight/(orderedRows.length+1);
+          const arcAmplitude = compactLayout ? 0 : Math.min(16, (compactGapY + extraGap) * .22);
+          let cursorY = region.top + extraGap;
+
+          orderedRows.forEach((row)=>{
+            const rowCenterY = cursorY + row.height/2;
+            const rowItems = shuffled(row.items);
+            const actualWidth = rowItems.reduce((sum,item)=>sum+item.width,0)
+              + Math.max(0,rowItems.length-1)*compactGapX;
+            const spareX = Math.max(0, usableWidth-actualWidth);
+            const rowShiftX = signedRandom(0, Math.min(4, spareX*.20));
+            let cursorX = frameBounds.left + spareX/2 + rowShiftX;
+
+            rowItems.forEach((metric)=>{
+              const horizontalJitter = signedRandom(0, Math.min(itemJitterX, compactGapX*.20));
+              const verticalJitter = signedRandom(0, rowJitterY);
+              const x = cursorX + metric.width/2 + horizontalJitter;
+              const normalizedX = (x-centerX) / Math.max(usableWidth/2, 1);
+              const arcOffset = (1-Math.min(1, normalizedX*normalizedX)) * arcAmplitude * (rowCenterY<centerY ? -1 : 1);
+              const y = rowCenterY + arcOffset + verticalJitter;
+              assignments.push(makeAssignment(metric.phrase, x, y, metric.rotation));
+              cursorX += metric.width + compactGapX;
+            });
+            cursorY += row.height + compactGapY + extraGap;
+          });
+        };
+
+        if(reserveCenterWritingBand){
+          placeRows(partition.topRows, topRegion);
+          placeRows(partition.bottomRows, bottomRegion);
+        } else {
+          placeRows(rows, fullRegion);
+        }
+
+
+        if(!reserveCenterWritingBand && finalPhrase){
+          const finalRect = buildPlacementRect(
+            centerX,
+            centerY,
+            finalPhrase.naturalWidth,
+            finalPhrase.naturalHeight,
+            0,
+            compactGapX + 6,
+            compactGapY + 6
+          );
+          const overlapsFinal = assignments.some((assignment)=>{
+            const assignmentRect = buildPlacementRect(
+              assignment.x,
+              assignment.y,
+              assignment.phrase.naturalWidth * scale,
+              assignment.phrase.naturalHeight * scale,
+              assignment.rotation,
+              compactGapX,
+              compactGapY
+            );
+            return rectsOverlap(assignmentRect, finalRect);
+          });
+          if(overlapsFinal) return null;
+        }
+
+        return assignments.length === placementOrder.length ? assignments : null;
+      };
+
+
+      const firstFloor = requestedMinimum === null ? .44 : Math.max(.44, requestedMinimum);
+      for(let scale=preferredScale;scale>=firstFloor-.001;scale-=.015){
+        const assignments = buildAtScale(scale);
+        if(assignments) return {assignments, scale};
+      }
+
+      const secondFloor = requestedMinimum === null ? .30 : requestedMinimum;
+      if(secondFloor < firstFloor-.001){
+        for(let scale=firstFloor-.015;scale>=secondFloor-.001;scale-=.015){
+          const assignments = buildAtScale(scale);
+          if(assignments) return {assignments, scale};
+        }
+      }
+
+      if(!allowTinyEmergency) return null;
+
+
+      const emergencyGapY = 2;
+      const finalEmergencyHalfHeight = finalPhrase ? finalPhrase.naturalHeight / 2 + 8 : 0;
+      const emergencyTopRegion = reserveCenterWritingBand
+        ? topRegion
+        : {top:fullRegion.top, bottom:centerY-finalEmergencyHalfHeight};
+      const emergencyBottomRegion = reserveCenterWritingBand
+        ? bottomRegion
+        : {top:centerY+finalEmergencyHalfHeight, bottom:fullRegion.bottom};
+      const emergencyTop = placementOrder.filter((_,index)=>index%2===0);
+      const emergencyBottom = placementOrder.filter((_,index)=>index%2===1);
+      const scaleForStack = (items, region)=>{
+        if(!items.length) return preferredScale;
+        const heightBudget = Math.max(1, (region.bottom-region.top)-Math.max(0,items.length-1)*emergencyGapY);
+        const naturalHeightSum = items.reduce((sum,phrase)=>sum+phrase.naturalHeight,0);
+        const heightScale = heightBudget/Math.max(1,naturalHeightSum);
+        const maxNaturalWidth = Math.max(...items.map((phrase)=>phrase.naturalWidth),1);
+        const widthScale = (usableWidth-4)/maxNaturalWidth;
+        return Math.max(.08, Math.min(preferredScale,heightScale,widthScale));
+      };
+      const emergencyScale = Math.min(
+        scaleForStack(emergencyTop,emergencyTopRegion),
+        scaleForStack(emergencyBottom,emergencyBottomRegion)
+      );
+      const assignments = [];
+      const stack = (items,region)=>{
+        const heights = items.map((phrase)=>phrase.naturalHeight*emergencyScale);
+        const totalHeight = heights.reduce((sum,height)=>sum+height,0)
+          + Math.max(0,items.length-1)*emergencyGapY;
+        let cursorY = region.top + Math.max(0,(region.bottom-region.top-totalHeight)/2);
+        items.forEach((phrase,index)=>{
+          const height = heights[index];
+          const y = cursorY + height/2;
+          const x = centerX + (index%2 ? usableWidth*.06 : -usableWidth*.06);
+          assignments.push(makeAssignment(phrase,x,y,(index%2 ? 1 : -1)*.35));
+          cursorY += height + emergencyGapY;
+        });
+      };
+      stack(emergencyTop,emergencyTopRegion);
+      stack(emergencyBottom,emergencyBottomRegion);
+      return {assignments, scale:emergencyScale};
+    };
+
+    const buildRingAssignmentsAtScale = (scale, deterministic = false)=>{
+      setPhrasecloudScale(scale);
+
+      const assignments = [];
+      const occupied = [];
+      const usableWidth = frameBounds.right - frameBounds.left;
+      const usableHeight = frameBounds.bottom - frameBounds.top;
+      const ringOffset = deterministic ? 0 : randomBetween(0, Math.PI * 2);
+      const ringDefs = {
+        outer:  {rx:usableWidth*.445, ry:usableHeight*.435, slots:44},
+        middle: {rx:usableWidth*.325, ry:usableHeight*.315, slots:40},
+        inner:  {rx:usableWidth*.215, ry:usableHeight*.205, slots:34}
+      };
+      const radiusVariants = deterministic ? [1, .94, 1.06] : [1, .94, 1.06, .89, 1.11];
+      const maxTilt = minViewportSide >= 1000
+        ? 6.5
+        : Math.max(1.2, Math.min(5.0, 1.2 + (minViewportSide - 512) / 488 * 3.8));
+
+      if(finalPhrase){
+        occupied.push(buildPlacementRect(centerX, centerY, finalPhrase.width, finalPhrase.height, 0, 8, 8));
+      }
+      if(reserveCenterWritingBand) occupied.push(centerWritingBand);
+
+      const reserveCandidate = (phrase, x, y, rotation)=>{
+        const extents = getRotatedExtents(phrase.width, phrase.height, rotation);
+        if(
+          x - extents.halfWidth < frameBounds.left ||
+          x + extents.halfWidth > frameBounds.right ||
+          y - extents.halfHeight < frameBounds.top ||
+          y + extents.halfHeight > frameBounds.bottom
+        ) return null;
+
+        const rect = buildPlacementRect(
+          x,
+          y,
+          phrase.width,
+          phrase.height,
+          rotation,
+          phrasecloudGapX,
+          phrasecloudGapY
+        );
+        if(occupied.some((placed)=>rectsOverlap(rect, placed))) return null;
+        return {x, y, rotation, rect};
+      };
+
+      const placeGroup = (sourcePhrases, ringOrder)=>{
+        const ordered = [...sourcePhrases].sort((a,b)=>b.width-a.width);
+        for(let phraseIndex=0;phraseIndex<ordered.length;phraseIndex++){
+          const phrase = ordered[phraseIndex];
+          const baseRotation = deterministic
+            ? (phraseIndex % 2 ? 1 : -1) * Math.min(1.4, maxTilt)
+            : signedRandom(Math.min(.8,maxTilt), maxTilt);
+          const candidates = [];
+
+          ringOrder.forEach((ringName, ringPriority)=>{
+            const ring = ringDefs[ringName];
+            radiusVariants.forEach((radiusFactor, radiusPriority)=>{
+              for(let slotIndex=0;slotIndex<ring.slots;slotIndex++){
+                const angle = ringOffset + Math.PI * 2 * slotIndex / ring.slots;
+                const x = centerX + Math.cos(angle) * ring.rx * radiusFactor;
+                const y = centerY + Math.sin(angle) * ring.ry * radiusFactor;
+
+                const horizontalPenalty = phrase.width > usableWidth*.30
+                  ? Math.abs(Math.cos(angle)) * 160
+                  : 0;
+                const score = ringPriority*40 + radiusPriority*4 + horizontalPenalty
+                  + (deterministic ? slotIndex*.001 : randomBetween(0,12));
+                candidates.push({x,y,rotation:baseRotation,score});
+              }
+            });
+          });
+
+          candidates.sort((a,b)=>a.score-b.score);
+          let chosen = null;
+          for(const candidate of candidates){
+            chosen = reserveCandidate(phrase, candidate.x, candidate.y, candidate.rotation);
+            if(chosen) break;
+          }
+          if(!chosen && baseRotation !== 0){
+            for(const candidate of candidates){
+              chosen = reserveCandidate(phrase, candidate.x, candidate.y, 0);
+              if(chosen) break;
+            }
+          }
+          if(!chosen) return false;
+
+          occupied.push(chosen.rect);
+          assignments.push(makeAssignment(phrase, chosen.x, chosen.y, chosen.rotation));
+        }
+        return true;
+      };
+
+      if(!placeGroup(largePhrases, ['outer','middle'])) return null;
+      if(!placeGroup(mediumPhrases, ['middle','outer','inner'])) return null;
+      if(!placeGroup(shortPhrases, ['inner','middle','outer'])) return null;
+      return assignments.length === placementOrder.length ? assignments : null;
+    };
+
+    const buildCapsuleFreeformAssignments = ()=>{
+      const desiredScale = phrasecloudScale;
+      const minimumScale = getCapsuleMinimumScale();
+      const usableWidth = frameBounds.right-frameBounds.left;
+      const usableHeight = frameBounds.bottom-frameBounds.top;
+
+      const tryScale = (scale, dense=false, allowOverlap=false)=>{
+        setPhrasecloudScale(scale);
+        const occupied = [];
+        const assignments = [];
+        const gapX = dense ? Math.max(2, phrasecloudGapX*.35) : Math.max(4, phrasecloudGapX*.55);
+        const gapY = dense ? Math.max(2, phrasecloudGapY*.35) : Math.max(4, phrasecloudGapY*.55);
+
+        if(finalPhrase){
+          occupied.push(buildPlacementRect(
+            centerX, centerY, finalPhrase.width, finalPhrase.height, 0,
+            gapX + 6, gapY + 6
+          ));
+        }
+
+        const ordered = [...placementOrder].sort((a,b)=>
+          (b.width*b.height)-(a.width*a.height) || b.width-a.width
+        );
+
+        const reserve = (phrase,x,y,rotation,permitOverlap=false)=>{
+          const extents = getRotatedExtents(phrase.width,phrase.height,rotation);
+          if(
+            x-extents.halfWidth < frameBounds.left ||
+            x+extents.halfWidth > frameBounds.right ||
+            y-extents.halfHeight < frameBounds.top ||
+            y+extents.halfHeight > frameBounds.bottom
+          ) return null;
+          const rect = buildPlacementRect(x,y,phrase.width,phrase.height,rotation,gapX,gapY);
+          const overlap = occupied.reduce((sum,placed)=>sum+overlapArea(rect,placed),0);
+          if(overlap > 0 && !permitOverlap) return null;
+          return {x,y,rotation,rect,overlap};
+        };
+
+        ordered.forEach((phrase,phraseIndex)=>{
+          if(assignments.length !== phraseIndex) return;
+          const candidates = [];
+          const gridCols = dense ? 30 : 24;
+          const gridRows = dense ? 24 : 18;
+          const anchorAngle = randomBetween(0,Math.PI*2);
+          const anchorRadius = randomBetween(.18,.46);
+          const anchorX = centerX + Math.cos(anchorAngle)*usableWidth*anchorRadius;
+          const anchorY = centerY + Math.sin(anchorAngle)*usableHeight*anchorRadius;
+
+          for(let row=0;row<gridRows;row++){
+            const fy = gridRows === 1 ? .5 : row/(gridRows-1);
+            const y = frameBounds.top + fy*usableHeight;
+            for(let col=0;col<gridCols;col++){
+              const fx = gridCols === 1 ? .5 : col/(gridCols-1);
+              const x = frameBounds.left + fx*usableWidth;
+              const score = Math.hypot(x-anchorX,y-anchorY) + randomBetween(0,dense ? 4 : 12);
+              candidates.push({x,y,score});
+            }
+          }
+          const randomAttempts = dense ? 520 : 320;
+          for(let attempt=0;attempt<randomAttempts;attempt++){
+            const x = randomBetween(frameBounds.left,frameBounds.right);
+            const y = randomBetween(frameBounds.top,frameBounds.bottom);
+            const score = Math.hypot(x-anchorX,y-anchorY) + randomBetween(0,10);
+            candidates.push({x,y,score});
+          }
+          candidates.sort((a,b)=>a.score-b.score);
+
+          const maxRotation = dense ? .45 : Math.max(.6,Math.min(1.8,tiltMultiplier*2.2));
+          const rotations = [signedRandom(.25,maxRotation),0];
+          let chosen = null;
+          let bestLoose = null;
+          for(const rotation of rotations){
+            for(const candidate of candidates){
+              const evaluated = reserve(phrase,candidate.x,candidate.y,rotation,allowOverlap);
+              if(!evaluated) continue;
+              if(evaluated.overlap === 0){
+                chosen = evaluated;
+                break;
+              }
+              const looseScore = evaluated.overlap + candidate.score*.02;
+              if(!bestLoose || looseScore < bestLoose.looseScore){
+                bestLoose = {...evaluated,looseScore};
+              }
+            }
+            if(chosen) break;
+          }
+          if(!chosen && allowOverlap) chosen = bestLoose;
+          if(!chosen) return;
+          occupied.push(chosen.rect);
+          assignments.push(makeAssignment(phrase,chosen.x,chosen.y,chosen.rotation));
+        });
+
+        return assignments.length === placementOrder.length ? assignments : null;
+      };
+
+      for(let scale=desiredScale;scale>=minimumScale-.001;scale-=.02){
+        const assignments = tryScale(scale,false);
+        if(assignments) return {assignments,scale};
+      }
+
+      const denseAssignments = tryScale(minimumScale,true);
+      if(denseAssignments) return {assignments:denseAssignments,scale:minimumScale};
+
+
+      const looseAssignments = tryScale(minimumScale,true,true);
+      return looseAssignments ? {assignments:looseAssignments,scale:minimumScale} : null;
+    };
+
+    const buildRingAssignments = ()=>{
+
+
+      const desiredScale = phrasecloudScale;
+      const minimumScale = viewportWidth >= 1200
+        ? 1
+        : Math.max(.72, desiredScale - .08);
+
+      for(let scale=desiredScale;scale>=minimumScale-.001;scale-=.02){
+        const assignments = buildRingAssignmentsAtScale(scale, false);
+        if(assignments) return {assignments, scale};
+      }
+
+      const deterministic = buildRingAssignmentsAtScale(minimumScale, true);
+      if(deterministic) return {assignments:deterministic, scale:minimumScale};
+
+
+      const emergencyFloor = viewportWidth >= 1200 ? 1 : .68;
+      for(let scale=minimumScale-.02;scale>=emergencyFloor-.001;scale-=.02){
+        const assignments = buildRingAssignmentsAtScale(scale, true);
+        if(assignments) return {assignments, scale};
+      }
+
+
+      if(viewportWidth >= 1200){
+        const assignments = buildRingAssignmentsAtScale(1, true);
+        if(assignments) return {assignments, scale:1};
+      }
+
+
+      const assignments = buildRingAssignmentsAtScale(emergencyFloor, true) || [];
+      return {assignments, scale:emergencyFloor};
+    };
+
+    let assignments;
+    let solvedScale;
+    if(capsuleLayout){
+
+
+      let capsuleResult = buildCapsuleFreeformAssignments();
+      if(!capsuleResult){
+        capsuleResult = buildCompactAssignments({
+          minimumScaleOverride:getCapsuleMinimumScale(),
+          allowTinyEmergency:false
+        });
+      }
+      if(!capsuleResult){
+
+
+        capsuleResult = buildCompactAssignments({
+          minimumScaleOverride:getCapsuleMinimumScale(),
+          allowTinyEmergency:false
+        });
+      }
+      assignments = capsuleResult?.assignments || [];
+      solvedScale = capsuleResult?.scale || getCapsuleMinimumScale();
+    } else if(compactLayout){
+      const compactResult = buildCompactAssignments();
+      assignments = compactResult.assignments;
+      solvedScale = compactResult.scale;
+    } else {
+      let ringResult = buildRingAssignments();
+      if(!ringResult.assignments.length){
+        ringResult = buildCompactAssignments();
+      }
+      assignments = ringResult.assignments;
+      solvedScale = ringResult.scale;
+    }
+    setPhrasecloudScale(solvedScale);
+
+    const phrasecloudMap = new Map();
+    if(finalPhrase){
+      const finalRect = buildPlacementRect(centerX, centerY, finalPhrase.width, finalPhrase.height, 0, 8, 8);
+      phrasecloudMap.set(finalPhrase, {x:centerX, y:centerY, rotation:0, rect:finalRect});
+    }
+    assignments.forEach((assignment)=>{
+      const phrase = assignment.phrase;
+      const rect = buildPlacementRect(
+        assignment.x,
+        assignment.y,
+        phrase.width,
+        phrase.height,
+        assignment.rotation,
+        phrasecloudGapX,
+        phrasecloudGapY
+      );
+      phrasecloudMap.set(phrase, {
+        x:assignment.x,
+        y:assignment.y,
+        rotation:assignment.rotation,
+        rect
+      });
+    });
+
+
+    const mapEntries = [...phrasecloudMap.entries()];
+    for(let i=0;i<mapEntries.length;i++){
+      const [firstPhrase, first] = mapEntries[i];
+      if(firstPhrase !== finalPhrase){
+        first.rect.left = Math.max(first.rect.left, frameBounds.left);
+        first.rect.right = Math.min(first.rect.right, frameBounds.right);
+        first.rect.top = Math.max(first.rect.top, frameBounds.top);
+        first.rect.bottom = Math.min(first.rect.bottom, frameBounds.bottom);
+      }
+    }
+
+    phrases.forEach((phrase)=>{
+      const chosen = phrasecloudMap.get(phrase);
+      phrase.targetX = chosen ? chosen.x : centerX;
+      phrase.targetY = chosen ? chosen.y : centerY;
+      phrase.rot = chosen ? chosen.rotation : 0;
+      phrase.outer.style.left = phrase.targetX + 'px';
+      phrase.outer.style.top = phrase.targetY + 'px';
+    });
+  } else {
+    const widths = phrases.map((phrase)=>phrase.width);
+    const minWidth = Math.min(...widths);
+    const maxWidth = Math.max(...widths);
+    const ringData = {
+      inner: {min:.18, max:.29, sectors:[0, 72, 144, 216, 288]},
+      middle: {min:.31, max:.43, sectors:[36, 108, 180, 252, 324]},
+      outer: {min:.44, max:.57, sectors:[225, 315, 45, 135, 180, 0]}
+    };
+    const ringFor = (ratio) => ratio >= .66 ? 'outer' : ratio >= .33 ? 'middle' : 'inner';
+    placementOrder.forEach((phrase, placementRank)=>{
+      const sizeRatio = maxWidth === minWidth ? .5 : (phrase.width-minWidth)/(maxWidth-minWidth);
+      const ringName = ringFor(sizeRatio);
+      const ring = ringData[ringName];
+      const preferredSector = ring.sectors[placementRank % ring.sectors.length] * Math.PI / 180;
+      const maxRotation = 14 - sizeRatio * 5;
+      const attempts = [];
+      const addCandidate = (angle, radius, rotation) => {
+        const outerBias = sizeRatio >= .66 ? sizeRatio : 0;
+        const x = layoutCenterX + Math.cos(angle) * radius * 1.42 - W * .055 * outerBias;
+        const y = centerY + Math.sin(angle) * radius * .82
+          + H * .045 * Math.sign(Math.sin(angle)) * outerBias;
+        const extents = getRotatedExtents(phrase.width, phrase.height, rotation);
+        const placementRect = buildPlacementRect(x, y, phrase.width, phrase.height, rotation, gapX, gapY);
+        const inside = x-extents.halfWidth >= safeLeft && x+extents.halfWidth <= safeRight
+          && y-extents.halfHeight >= safeTop && y+extents.halfHeight <= safeBottom;
+        if(!inside || intrudesCenterHole(placementRect)) return;
+        const overlap = placedRects.reduce((sum, placed)=>sum + overlapArea(placementRect, placed), 0);
+        const radialError = Math.abs(radius/Math.min(W, H) - (ring.min+ring.max)/2);
+        const sectorError = Math.abs(Math.atan2(Math.sin(angle-preferredSector), Math.cos(angle-preferredSector)));
+        const edgeDistance = Math.min(x-safeLeft, safeRight-x, y-safeTop, safeBottom-y);
+        attempts.push({x, y, rotation, rect:placementRect, overlap, score:radialError*8 + sectorError*.16
+          + 1/Math.max(edgeDistance, 1)*Math.min(W, H)*.05 + Math.random()*.025});
+      };
+      for(let candidateIndex=0;candidateIndex<320;candidateIndex++){
+        const angle = preferredSector + (Math.random()-.5) * (ringName === 'outer' ? 1.0 : 1.25);
+        const radius = Math.min(W, H) * (ring.min + Math.random()*(ring.max-ring.min));
+        addCandidate(angle, radius, (Math.random()*2-1)*maxRotation);
+      }
+      let chosen = attempts.filter((candidate)=>candidate.overlap === 0).sort((a, b)=>a.score-b.score)[0];
+      if(!chosen){
+        for(let attempt=0;attempt<320;attempt++){
+          const angle = Math.random()*Math.PI*2;
+          const radius = Math.min(W, H) * (ring.min + Math.random()*(ring.max-ring.min));
+          addCandidate(angle, radius, (Math.random()*2-1)*maxRotation);
+        }
+        chosen = attempts.filter((candidate)=>candidate.overlap === 0).sort((a, b)=>a.score-b.score)[0];
+      }
+      if(!chosen) chosen = attempts.sort((a, b)=>a.overlap-b.overlap || a.score-b.score)[0];
+      if(!chosen){
+        const rotation = (Math.random()*2-1)*maxRotation;
+        const extents = getRotatedExtents(phrase.width, phrase.height, rotation);
+        const x = Math.min(Math.max(layoutCenterX, safeLeft+extents.halfWidth), safeRight-extents.halfWidth);
+        const y = Math.min(Math.max(centerY, safeTop+extents.halfHeight), safeBottom-extents.halfHeight);
+        chosen = {x, y, rotation, rect:buildPlacementRect(x, y, phrase.width, phrase.height, rotation, gapX, gapY)};
+      }
+      applyPlacement(phrase, chosen);
+    });
+  }
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!window.gsap || reducedMotion){
+    phrases.forEach(({outer, inner, characters, rot, finalScale}, phraseIndex)=>{
+      outer.style.visibility = 'visible';
+      outer.style.opacity = '1';
+      outer.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(${finalScale})`;
+      if(layoutMode === 'phrasecloudFrame') outer.classList.add('has-outline');
+      characters.forEach((character)=>{
+        character.style.visibility = 'visible';
+        character.style.opacity = '1';
+        character.style.fill = colorVar;
+        character.style.stroke = 'none';
+        character.style.strokeOpacity = '1';
+        character.style.fillOpacity = '1';
+        character.style.strokeDasharray = 'none';
+        character.style.strokeDashoffset = '0';
+      });
+      if(enableCenterShimmer && phraseIndex === phrases.length-1){
+        inner.classList.add(centerShimmerClass);
+        inner.style.animationPlayState = 'paused';
+      } else {
+        inner.style.animationPlayState = 'running';
+      }
+    });
+    if(onEarlyAdvanceReady) onEarlyAdvanceReady();
+    if(onDone) onDone();
+    return;
+  }
+
+  const phrasecloudWritingMode = layoutMode === 'phrasecloudFrame';
+  const writingScale = phrasecloudWritingMode ? getPhrasecloudWritingScale() : 1;
+  const timeline = gsap.timeline({paused, onComplete:onDone});
+  const speed = Math.max(Number(ANIMATION_SPEED.scatterWriting) || 1, 0.1);
+  const strokeDuration = .14 / speed;
+  const fillDuration = .07 / speed;
+  const fillStartOffset = .10 / speed;
+  const characterDuration = fillStartOffset + fillDuration;
+  let cursor = 0;
+  const earlyAdvanceIndex = Math.max(0, Math.min(phrases.length - 1, Math.floor(Number(earlyAdvanceAfter) || 2) - 1));
+
+  phrases.forEach((phrase, phraseIndex)=>{
+    const {outer, inner, characters, targetX, targetY, rot, finalScale} = phrase;
+    const writeDuration = characters.length > 0
+      ? (characters.length - 1) * characterDuration + characterDuration
+      : 0;
+    const moveSpeed = Math.max(Number(ANIMATION_SPEED.scatterMoving) || 1, 0.1);
+    const moveDuration = .72 / moveSpeed;
+    const writeEnd = cursor + writeDuration;
+    const isCenteredFinal = layoutMode === 'phrasecloudFrame' && keepLastPhraseCentered && phraseIndex === phrases.length-1;
+
+
+    gsap.set(outer, {
+      xPercent:-50,
+      yPercent:-50,
+      x:centerX-targetX,
+      y:centerY-targetY,
+      rotation:0,
+      scale:writingScale
+    });
+    timeline.set(outer, {visibility:'visible', opacity:1}, cursor);
+
+    if(layoutMode === 'phrasecloudFrame'){
+      timeline.add(()=>{
+        outer.classList.add('is-writing');
+        outer.classList.add('has-outline');
+      }, cursor);
+      timeline.add(()=>outer.classList.remove('is-writing'), writeEnd);
+    }
+
+    characters.forEach((character, characterIndex)=>{
+      const start = cursor + characterIndex * characterDuration;
+      timeline.set(character, {visibility:'visible', opacity:1, strokeOpacity:1, fillOpacity:0}, start);
+      timeline.to(character, {strokeDashoffset:0, duration:strokeDuration, ease:'none'}, start);
+      timeline.to(character, {fill:colorVar, fillOpacity:1, strokeOpacity:0, duration:fillDuration, ease:'power1.out'}, start + fillStartOffset);
+    });
+
+    if(isCenteredFinal){
+      if(writingScale !== finalScale){
+        timeline.to(outer, {scale:finalScale, duration:moveDuration*.55, ease:'power2.out'}, writeEnd);
+      }
+      timeline.add(()=>inner.classList.add('scatter-inner--center-shimmer'), writeEnd);
+      timeline.set(inner, {animationPlayState:'paused'}, writeEnd);
+      cursor = writeEnd + (writingScale !== finalScale ? moveDuration*.55 : 0);
+    } else {
+
+
+      timeline.to(outer, {
+        x:0,
+        y:0,
+        rotation:rot,
+        scale:finalScale,
+        duration:moveDuration,
+        ease:'power2.inOut'
+      }, writeEnd);
+      timeline.set(inner, {animationPlayState:'running'}, writeEnd + moveDuration);
+      if(onEarlyAdvanceReady && phraseIndex === earlyAdvanceIndex){
+        timeline.add(onEarlyAdvanceReady, writeEnd + moveDuration);
+      }
+      cursor = writeEnd + moveDuration*.48;
+    }
   });
+  if(registerTimeline) scatterTimeline = timeline;
+  return timeline;
 }
 
-function renderScene(i){
+function renderScene(i, {preload=false}={}){
   const item = SEQUENCE[i];
   const scene = document.createElement('div');
   scene.className = 'scene';
 
   if(item.type === 'line'){
-    scene.innerHTML = `
-      <div class="line-text ${item.emphasis ? 'emphasis' : ''}">${item.text}</div>
-      ${item.cta ? `<div class="hint">${item.cta}</div>` : ''}
-    `;
+    scene.classList.add('line-scene');
+    const lineWrap = document.createElement('div');
+    lineWrap.className = 'line-svg-wrap';
+    const line = buildLineSvg(item);
+    lineWrap.appendChild(line.svg);
+    scene.appendChild(lineWrap);
+    let hint = null;
+    if(item.cta){
+      hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = item.cta;
+      hint.style.opacity = '0';
+      hint.style.transform = 'translateY(6px)';
+      scene.appendChild(hint);
+    }
+    scene._line = line;
+    scene._lineHint = hint;
     stage.classList.remove('no-click');
     scene.addEventListener('click', next);
   }
 
   if(item.type === 'wordcloud'){
-    // Единственный экран, где клик по экрану НЕ листает дальше —
-    // здесь клик открывает описание качества.
     stage.classList.add('no-click');
+    let opened = 0;
+    let activeQuoteLayer = null;
     const topHint = document.createElement('div');
-    topHint.className = 'hint';
-    topHint.textContent = 'нажимай на слова';
-
+    topHint.className = 'hint wordcloud-title';
+    topHint.textContent = 'Нажимай на слова';
     const cloud = document.createElement('div');
     cloud.className = 'cloud-wrap';
+    const quoteEl = document.createElement('div');
+    quoteEl.className = 'cloud-quote';
+    const quoteLayers = new Map();
+
+    const buildQuoteLayer = (quote)=>{
+      const layer = document.createElement('div');
+      layer.className = 'cloud-quote-layer';
+      const characters = [];
+      const parts = quote.split(/(\s+)/);
+      parts.forEach((part)=>{
+        if(!part) return;
+        if(/\s+/.test(part)){
+          layer.appendChild(document.createTextNode(part));
+          return;
+        }
+        const word = document.createElement('span');
+        word.className = 'cloud-quote-word';
+        [...part].forEach((character)=>{
+          const char = document.createElement('span');
+          char.className = 'cloud-quote-char';
+          char.textContent = character;
+          word.appendChild(char);
+          characters.push(char);
+        });
+        layer.appendChild(word);
+      });
+      const caret = document.createElement('span');
+      caret.className = 'cloud-quote-caret';
+      caret.textContent = '▋';
+      layer.insertBefore(caret, layer.firstChild);
+      quoteEl.appendChild(layer);
+      return {layer, characters, caret};
+    };
+
+    CLOUD_WORDS.forEach((cw)=>{
+      quoteLayers.set(cw, buildQuoteLayer(cw.quote));
+    });
+
+    const showQuote = (cw)=>{
+      const nextQuote = quoteLayers.get(cw);
+      if(!nextQuote || nextQuote.layer === activeQuoteLayer) return;
+      if(wordcloudTimeline){
+        wordcloudTimeline.kill();
+        wordcloudTimeline = null;
+      }
+
+      [...quoteEl.children].forEach((layer)=>{
+        const caret = layer.querySelector('.cloud-quote-caret');
+        if(caret) caret.style.visibility = 'hidden';
+        if(layer !== activeQuoteLayer){
+          layer.style.visibility = 'hidden';
+          layer.style.opacity = '0';
+        }
+      });
+      nextQuote.characters.forEach((character)=>{
+        character.style.opacity = '0';
+      });
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(!window.gsap || reducedMotion){
+        if(activeQuoteLayer){
+          activeQuoteLayer.style.visibility = 'hidden';
+          activeQuoteLayer.style.opacity = '0';
+        }
+        nextQuote.layer.style.visibility = 'visible';
+        nextQuote.layer.style.opacity = '1';
+        nextQuote.characters.forEach((character)=>{ character.style.opacity = '1'; });
+        const lastCharacter = nextQuote.characters[nextQuote.characters.length - 1];
+        if(lastCharacter){
+          lastCharacter.parentNode.insertBefore(nextQuote.caret, lastCharacter.nextSibling);
+        }
+        nextQuote.caret.style.visibility = 'visible';
+        activeQuoteLayer = nextQuote.layer;
+        return;
+      }
+
+      const timeline = gsap.timeline();
+      if(activeQuoteLayer){
+        timeline.to(activeQuoteLayer, {opacity:0, duration:.34, ease:'power1.out'})
+          .set(activeQuoteLayer, {visibility:'hidden'});
+      }
+      timeline.set(nextQuote.layer, {visibility:'visible', opacity:1});
+      timeline.set(nextQuote.caret, {visibility:'visible'});
+      const typeStart = timeline.duration();
+      nextQuote.characters.forEach((character, characterIndex)=>{
+        const start = typeStart + characterIndex * .022;
+        timeline.to(character, {opacity:1, duration:.045, ease:'none'}, start);
+        timeline.add(()=>{
+          character.parentNode.insertBefore(nextQuote.caret, character.nextSibling);
+        }, start);
+      });
+      timeline.eventCallback('onComplete', ()=>{
+        wordcloudTimeline = null;
+      });
+      activeQuoteLayer = nextQuote.layer;
+      wordcloudTimeline = timeline;
+    };
+
     CLOUD_WORDS.forEach(cw=>{
       const w = document.createElement('span');
       w.className = 'cloud-word';
       w.textContent = cw.word;
       w.addEventListener('click', (e)=>{
         e.stopPropagation();
-        quoteEl.textContent = cw.quote;
         [...cloud.children].forEach(c=>c.classList.remove('opened'));
         w.classList.add('opened');
+        opened++;
+        showQuote(cw);
+        if(opened >= 2){ contWrap.classList.add('show'); }
       });
       cloud.appendChild(w);
     });
 
-    const quoteEl = document.createElement('div');
-    quoteEl.className = 'cloud-quote';
-
-    const localNext = document.createElement('button');
-    localNext.className = 'cta-inline';
-    localNext.textContent = 'дальше';
-    localNext.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      next();
-    });
+    const contWrap = document.createElement('div');
+    contWrap.className = 'continue-wrap';
+    const contBtn = document.createElement('button');
+    contBtn.className = 'cta';
+    contBtn.textContent = 'дальше';
+    contBtn.addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
+    contWrap.appendChild(contBtn);
 
     scene.appendChild(topHint);
     scene.appendChild(cloud);
     scene.appendChild(quoteEl);
-    scene.appendChild(localNext);
+    scene.appendChild(contWrap);
   }
 
   if(item.type === 'phrasecloud'){
-    stage.classList.remove('no-click');
-    scene.addEventListener('click', next);
+    if(!preload) stage.classList.add('no-click');
     const zone = document.createElement('div');
     zone.className = 'scatter-zone';
+
+    const contWrap = document.createElement('div');
+    contWrap.className = 'continue-wrap pinned';
+    const contBtn = document.createElement('button');
+    contBtn.className = 'cta';
+    contBtn.textContent = 'дальше';
+    contBtn.addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
+    contWrap.appendChild(contBtn);
+
     scene.appendChild(zone);
+    scene.appendChild(contWrap);
     scene._scatterZone = zone;
+    scene._scatterCont = contWrap;
+    scene._earlyAdvanceReady = false;
+    scene._enableEarlyAdvance = ()=>{
+      scene._earlyAdvanceReady = true;
+      if(scene.isConnected && SEQUENCE[index]?.type === 'phrasecloud') stage.classList.remove('no-click');
+    };
+    scene.addEventListener('click', (e)=>{
+      if(!scene._earlyAdvanceReady) return;
+      e.stopPropagation();
+      next();
+    });
   }
 
   if(item.type === 'capsule'){
-    stage.classList.remove('no-click');
-    scene.addEventListener('click', next);
+    stage.classList.add('no-click');
     const ambient = document.createElement('div');
     ambient.className = 'capsule-ambient';
 
     const lead = document.createElement('div');
     lead.className = 'capsule-lead';
-    lead.textContent = CAPSULE_LEAD;
+    const capsuleViewportWidth = Math.max(document.documentElement.clientWidth || window.innerWidth || 0, 1);
+
+
+    const getCapsuleLeadFontSize = ()=>{
+      if(capsuleViewportWidth >= 700) return PHRASECLOUD_BASE_FONT_SIZE;
+      if(capsuleViewportWidth >= 512){
+        const progress = (capsuleViewportWidth-512)/(700-512);
+        return 30 + progress*4;
+      }
+      const progress = Math.min(1, Math.max(0, (capsuleViewportWidth-320)/(512-320)));
+      return 22 + progress*8;
+    };
+    const leadFontSize = getCapsuleLeadFontSize();
+    const leadSvg = buildWrappedScatterSvg(
+      CAPSULE_LEAD,
+      'var(--ink)',
+      leadFontSize,
+      Math.max(180, capsuleViewportWidth * .78)
+    );
+    lead.appendChild(leadSvg.svg);
 
     const zone = document.createElement('div');
     zone.className = 'scatter-zone capsule-zone';
 
+    const contWrap = document.createElement('div');
+    contWrap.className = 'continue-wrap pinned';
+    const contBtn = document.createElement('button');
+    contBtn.className = 'cta';
+    contBtn.textContent = 'дальше';
+    contBtn.addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
+    contWrap.appendChild(contBtn);
+
     scene.appendChild(ambient);
     scene.appendChild(lead);
     scene.appendChild(zone);
+    scene.appendChild(contWrap);
     scene._scatterZone = zone;
-    scene._leadEl = lead;
+    scene._scatterCont = contWrap;
+    scene._capsuleLead = {element:lead, characters:leadSvg.characters};
+    scene._earlyAdvanceReady = false;
+    scene._enableEarlyAdvance = ()=>{
+      scene._earlyAdvanceReady = true;
+      if(scene.isConnected && SEQUENCE[index]?.type === 'capsule') stage.classList.remove('no-click');
+    };
+    scene.addEventListener('click', (e)=>{
+      if(!scene._earlyAdvanceReady) return;
+      e.stopPropagation();
+      next();
+    });
   }
 
   if(item.type === 'final'){
     stage.classList.add('no-click');
-
-    const wrap = document.createElement('div');
-    wrap.className = 'final-lines';
-
-    const titleEl = document.createElement('div');
-    titleEl.className = 'final-title final-fade';
-    titleEl.textContent = FINAL.title;
-
-    const subEl = document.createElement('div');
-    subEl.className = 'final-sub final-fade';
-    subEl.textContent = FINAL.sub;
-
-    const signEl = document.createElement('div');
-    signEl.className = 'final-sign final-fade';
-    signEl.textContent = FINAL.sign;
-
-    wrap.appendChild(titleEl);
-    wrap.appendChild(subEl);
-    wrap.appendChild(signEl);
-
-    const replayBtn = document.createElement('button');
-    replayBtn.className = 'replay final-fade';
-    replayBtn.textContent = 'посмотреть ещё раз';
-    replayBtn.addEventListener('click', (e)=>{
+    const finalLines = document.createElement('div');
+    finalLines.className = 'final-lines';
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'final-title-wrap';
+    const titleLine = buildLineSvg({text:FINAL.title});
+    titleLine.svg.classList.add('line-final');
+    titleWrap.appendChild(titleLine.svg);
+    const sub = document.createElement('div');
+    sub.className = 'final-sub';
+    sub.textContent = FINAL.sub;
+    const sign = document.createElement('div');
+    sign.className = 'final-sign';
+    sign.textContent = FINAL.sign;
+    const flourish = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    flourish.classList.add('final-flourish');
+    flourish.setAttribute('viewBox', '0 0 120 24');
+    flourish.setAttribute('aria-hidden', 'true');
+    flourish.innerHTML = '<path d="M8 12c17-8 22 8 38 0s22-8 34 0 17 8 32-1" />';
+    finalLines.append(titleWrap, sub, sign, flourish);
+    const replay = document.createElement('button');
+    replay.className = 'replay';
+    replay.textContent = 'посмотреть ещё раз';
+    scene.append(finalLines, replay);
+    scene._finalLine = titleLine;
+    scene._finalSub = sub;
+    scene._finalSign = sign;
+    scene._finalFlourish = flourish;
+    scene._replay = replay;
+    replay.addEventListener('click', (e)=>{
       e.stopPropagation();
       restart();
-    });
-
-    scene.appendChild(wrap);
-    scene.appendChild(replayBtn);
-
-    [titleEl, subEl, signEl, replayBtn].forEach((el, i)=>{
-      setTimeout(()=> el.classList.add('in'), i * 2000);
     });
   }
 
@@ -661,53 +2345,275 @@ function prev(){
   showCurrent();
 }
 
+function updateWordcloudVerticalOffset(scene){
+  const cloud = scene?.querySelector('.cloud-wrap');
+  const title = scene?.querySelector('.wordcloud-title');
+  if(!cloud) return;
+
+  const viewportHeight = Math.max(window.innerHeight || document.documentElement.clientHeight || 0, 1);
+  const desiredShift = viewportHeight >= 850
+    ? 0
+    : Math.max(-130, Math.min(0, viewportHeight * .32 - 272));
+
+
+  scene.style.setProperty('--cloud-offset-y', '0px');
+  const cloudRect = cloud.getBoundingClientRect();
+  const titleRect = title?.getBoundingClientRect();
+  const contentTop = titleRect ? Math.min(titleRect.top, cloudRect.top) : cloudRect.top;
+  const backRect = backBtn.getBoundingClientRect();
+  const safeTop = backRect.bottom + 12;
+  const minimumSafeShift = safeTop - contentTop;
+  const safeShift = Math.max(desiredShift, minimumSafeShift);
+
+  scene.style.setProperty('--cloud-offset-y', `${safeShift}px`);
+}
+
+function animateCapsuleLead(scene, onComplete){
+  const leadData = scene?._capsuleLead;
+  if(!leadData){
+    if(onComplete) onComplete();
+    return;
+  }
+
+  const {element, characters} = leadData;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const settleScale = .78;
+
+  const showStatic = ()=>{
+    characters.forEach((character)=>{
+      character.style.visibility = 'visible';
+      character.style.opacity = '1';
+      character.style.fill = 'var(--ink)';
+      character.style.stroke = 'none';
+      character.style.strokeOpacity = '1';
+      character.style.fillOpacity = '1';
+      character.style.strokeDasharray = 'none';
+      character.style.strokeDashoffset = '0';
+    });
+    element.style.top = '9%';
+    element.style.transform = `translate(-50%, 0) scale(${settleScale})`;
+    if(onComplete) onComplete();
+  };
+
+  if(!window.gsap || reducedMotion){
+    showStatic();
+    return;
+  }
+
+  characters.forEach((character)=>{
+    const length = Math.max(character.getComputedTextLength(), 1);
+    character.style.visibility = 'hidden';
+    character.style.opacity = '0';
+    character.style.fill = 'transparent';
+    character.style.stroke = 'var(--ink)';
+    character.style.strokeOpacity = '0';
+    character.style.fillOpacity = '0';
+    character.style.strokeWidth = '.8';
+    character.style.paintOrder = 'stroke';
+    character.style.strokeDasharray = `${length} ${length}`;
+    character.style.strokeDashoffset = String(length);
+  });
+
+  gsap.set(element, {xPercent:-50, yPercent:-50, scale:1});
+  const writingSpeed = Math.max(Number(ANIMATION_SPEED.scatterWriting) || 1, .1);
+  const movingSpeed = Math.max(Number(ANIMATION_SPEED.scatterMoving) || 1, .1);
+  const strokeDuration = .14 / writingSpeed;
+  const fillDuration = .07 / writingSpeed;
+  const fillStartOffset = .10 / writingSpeed;
+  const characterDuration = fillStartOffset + fillDuration;
+  const writeDuration = characters.length > 0 ? characters.length * characterDuration : 0;
+  const moveDuration = .72 / movingSpeed;
+
+  const timeline = gsap.timeline({onComplete});
+  characters.forEach((character, characterIndex)=>{
+    const start = characterIndex * characterDuration;
+    timeline.set(character, {visibility:'visible', opacity:1, strokeOpacity:1, fillOpacity:0}, start);
+    timeline.to(character, {strokeDashoffset:0, duration:strokeDuration, ease:'none'}, start);
+    timeline.to(character, {fill:'var(--ink)', fillOpacity:1, strokeOpacity:0, duration:fillDuration, ease:'power1.out'}, start + fillStartOffset);
+  });
+  timeline.to(element, {top:'9%', yPercent:0, scale:settleScale, duration:moveDuration, ease:'power2.inOut'}, writeDuration);
+  scatterTimeline = timeline;
+}
+
+function updateCapsuleZoneBounds(scene){
+  const lead = scene?.querySelector('.capsule-lead');
+  const zone = scene?.querySelector('.capsule-zone');
+  if(!lead || !zone) return;
+
+
+  zone.style.top = '';
+  const sceneRect = scene.getBoundingClientRect();
+  const leadRect = lead.getBoundingClientRect();
+  const fallbackTop = sceneRect.height * .22;
+  const measuredTop = leadRect.bottom - sceneRect.top + 18;
+  const safeTop = Math.max(fallbackTop, measuredTop);
+  zone.style.top = `${safeTop}px`;
+}
+
 function showCurrent(){
+  if(lineTimeline){
+    lineTimeline.kill();
+    lineTimeline = null;
+  }
+  if(scatterTimeline){
+    scatterTimeline.kill();
+    scatterTimeline = null;
+  }
+  if(wordcloudTimeline){
+    wordcloudTimeline.kill();
+    wordcloudTimeline = null;
+  }
+  if(finalTimeline){
+    finalTimeline.kill();
+    finalTimeline = null;
+  }
+  const type = SEQUENCE[index].type;
+  const viewportKey = getPhrasecloudViewportKey();
+  const canUsePreparedPhrasecloud = type === 'phrasecloud'
+    && preparedPhrasecloud
+    && preparedPhrasecloud.viewportKey === viewportKey;
+
   stage.innerHTML = '';
-  const scene = renderScene(index);
+  const scene = canUsePreparedPhrasecloud ? preparedPhrasecloud.scene : renderScene(index);
+  if(canUsePreparedPhrasecloud){
+    preparedPhrasecloud = null;
+    stage.classList.add('no-click');
+  }
   stage.appendChild(scene);
+  if(type === 'wordcloud') updateWordcloudVerticalOffset(scene);
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=> scene.classList.add('active'));
   });
   updateProgress();
-  updateNavButtons();
+  updateNavigationButtons();
 
-  const type = SEQUENCE[index].type;
   if(type === 'phrasecloud'){
-    // эта фраза всегда должна вылетать последней и крупнее остальных
-    const LAST_PHRASE = 'Как думаешь, когда сможешь сделать?';
-    const mainPhrases = PHRASE_CLOUD.filter(p => p !== LAST_PHRASE);
-    scatterInto(scene._scatterZone, mainPhrases, {
-      colorVar: 'var(--deep-green)',
-      staggerMs: 1000,
-      fontClamp: 'clamp(1rem, 2.3vw, 1.4rem)',
-      trailing: [
-        { text: LAST_PHRASE, fontClamp: 'clamp(1.35rem, 3.4vw, 1.95rem)', center: true }
-      ]
-    });
+    if(canUsePreparedPhrasecloud && scene._scatterPreparedTimeline){
+      scatterTimeline = scene._scatterPreparedTimeline;
+      scene._scatterPreparedTimeline = null;
+      scatterTimeline.restart(true);
+    } else {
+      scatterInto(scene._scatterZone, PHRASE_CLOUD, {
+        colorVar: 'var(--sage)',
+        staggerMs: 650,
+        fontClamp: `${PHRASECLOUD_BASE_FONT_SIZE}px`,
+        layoutMode: 'phrasecloudFrame',
+        reserveCenter: true,
+        keepLastPhraseCentered: true,
+        enableCenterShimmer: true,
+        onEarlyAdvanceReady: ()=>scene._enableEarlyAdvance(),
+        earlyAdvanceAfter: 1,
+        onDone: ()=> scene._scatterCont.classList.add('show')
+      });
+    }
   }
   if(type === 'capsule'){
-    const leadEl = scene._leadEl;
-    // 1) крупная фраза выплывает по центру
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=> leadEl.classList.add('shown'));
-    });
-    // 2) через паузу — уезжает наверх и уменьшается
-    setTimeout(()=> leadEl.classList.add('settled'), 1700);
-    // 3) и только после этого начинают вылетать пожелания
-    setTimeout(()=>{
+
+
+    animateCapsuleLead(scene, ()=>{
+      updateCapsuleZoneBounds(scene);
       scatterInto(scene._scatterZone, CAPSULE_WORDS, {
-        colorVar: 'var(--deep-green)',
-        staggerMs: 1150,
-        fontClamp: 'clamp(0.85rem, 2vw, 1.2rem)',
-        noRotate: true
+        colorVar: 'var(--gold)',
+        staggerMs: 650,
+        fontClamp: `${PHRASECLOUD_BASE_FONT_SIZE}px`,
+        layoutMode: 'phrasecloudFrame',
+        reserveCenter: true,
+        reserveCenterWritingBand: false,
+        forceMultilineAboveWords: 2,
+        layoutProfile: 'capsule',
+        keepLastPhraseCentered: true,
+        enableCenterShimmer: true,
+        centerShimmerClass: 'scatter-inner--capsule-center-shimmer',
+        onEarlyAdvanceReady: ()=>scene._enableEarlyAdvance(),
+        earlyAdvanceAfter: 1,
+        onDone: ()=> scene._scatterCont.classList.add('show')
       });
-    }, 2900);
+    });
+  }
+  if(type === 'line') animateLine(scene._line, scene._lineHint);
+  if(type === 'final'){
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealFinal = ()=>{
+      if(!window.gsap || reducedMotion){
+        scene._finalSub.classList.add('show');
+        scene._finalSign.classList.add('show');
+        scene._finalFlourish.classList.add('show');
+        scene._replay.classList.add('show');
+        return;
+      }
+      finalTimeline = gsap.timeline();
+      finalTimeline.to(scene._finalSub, {opacity:1, y:0, duration:.9, ease:'power1.out'})
+        .to(scene._finalSign, {opacity:1, y:0, duration:.9, ease:'power1.out'}, '+=1.1')
+        .to(scene._finalFlourish, {opacity:.8, duration:.35}, '+=.12')
+        .to(scene._finalFlourish.querySelector('path'), {strokeDashoffset:0, duration:.8, ease:'power1.out'})
+        .to(scene._replay, {opacity:.85, duration:.5}, '+=.18');
+    };
+    animateLine(scene._finalLine, null, revealFinal);
+  }
+}
+
+function preparePhrasecloudScene(){
+  if(index !== 0 || preparedPhrasecloud) return;
+  if(!window.gsap || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const generation = ++phrasecloudPrepareGeneration;
+  const viewportKey = getPhrasecloudViewportKey();
+  const run = ()=>{
+    if(generation !== phrasecloudPrepareGeneration || index !== 0 || preparedPhrasecloud) return;
+
+    const scene = renderScene(1, {preload:true});
+    scene.style.visibility = 'hidden';
+    scene.style.pointerEvents = 'none';
+    stage.appendChild(scene);
+
+
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(generation !== phrasecloudPrepareGeneration || index !== 0){
+        scene.remove();
+        return;
+      }
+      const timeline = scatterInto(scene._scatterZone, PHRASE_CLOUD, {
+        colorVar: 'var(--sage)',
+        staggerMs: 650,
+        fontClamp: `${PHRASECLOUD_BASE_FONT_SIZE}px`,
+        layoutMode: 'phrasecloudFrame',
+        reserveCenter: true,
+        keepLastPhraseCentered: true,
+        enableCenterShimmer: true,
+        onEarlyAdvanceReady: ()=>scene._enableEarlyAdvance(),
+        earlyAdvanceAfter: 1,
+        paused: true,
+        registerTimeline: false,
+        onDone: ()=> scene._scatterCont.classList.add('show')
+      });
+      scene.remove();
+      scene.style.visibility = '';
+      scene.style.pointerEvents = '';
+      scene._scatterPreparedTimeline = timeline;
+      preparedPhrasecloud = {scene, timeline, viewportKey};
+    }));
+  };
+
+  const afterFonts = ()=>{
+    if('requestIdleCallback' in window){
+      requestIdleCallback(run, {timeout:700});
+    } else {
+      setTimeout(run, 0);
+    }
+  };
+
+  if(document.fonts?.ready){
+    document.fonts.ready.then(afterFonts);
+  } else {
+    afterFonts();
   }
 }
 
 function restart(){
+  cancelPreparedPhrasecloud();
   index = 0;
   showCurrent();
+  preparePhrasecloudScene();
 }
 
 backBtn.addEventListener('click', (e)=>{ e.stopPropagation(); prev(); });
@@ -715,12 +2621,27 @@ nextBtn.addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
 
 buildProgress();
 showCurrent();
+preparePhrasecloudScene();
+
+window.addEventListener('resize', ()=>{
+  clearTimeout(phrasecloudResizeTimer);
+  phrasecloudResizeTimer = setTimeout(()=>{
+    cancelPreparedPhrasecloud();
+    if(index === 0) preparePhrasecloudScene();
+    if(SEQUENCE[index]?.type === 'wordcloud'){
+      const currentScene = stage.querySelector('.scene');
+      if(currentScene) updateWordcloudVerticalOffset(currentScene);
+    }
+  }, 140);
+});
 
 window.addEventListener('keydown', (e)=>{
-  if(e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); next(); }
+  if(e.key === 'ArrowRight' || e.key === ' '){
+    const cur = SEQUENCE[index];
+    if(cur.type === 'line') next();
+  }
   if(e.key === 'ArrowLeft'){ prev(); }
 });
 </script>
 </body>
 </html>
-
